@@ -6,7 +6,7 @@
 - Urban Vesel | [ultraviolet99](https://github.com/ultraviolet99)
 
 ## Project description
-The article used as the starting point of for this assignment was [[1]](#1). 
+The article used as the starting point for this assignment was [[1]](#1). 
 
 
 ## Project plan
