@@ -19,4 +19,4 @@ The paper used as the starting point for this assignment was [[1]](#1). The pape
 -
 
 ## References
-<a id="1" href="https://arxiv.org/abs/2305.17108">[1] Puy, et al. 2023. Selective social interactions and speed-induced leadership in schooling fish.</a> 
+<a id="1" href="https://royalsocietypublishing.org/doi/10.1098/rsos.150473">[1] Puy, et al. 2023. Selective social interactions and speed-induced leadership in schooling fish.</a> 
