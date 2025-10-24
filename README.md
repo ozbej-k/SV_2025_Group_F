@@ -6,7 +6,7 @@
 - Urban Vesel | [ultraviolet99](https://github.com/ultraviolet99)
 
 ## Project description
-The paper used as the starting point for this assignment was [[1]](#1). The paper presents a model describing the visual sensory system of zebrafish, introduces a stochastic process based on a probability distribution function to model fish movement depending on their surroundings. The model is then compared to experimental data acquired by recording real life zebrafish and their changes in behaviour when introducing points of interest into the environment. Our goal is to implement the model, validate it by comparing it to the real life experimental data, and then possibly extend it by adding interactive control over positions of points of interest and differently shaped environments to see how the fish react.
+The study used as the starting point for this assignment was [[1]](#1). The paper presents a model describing the visual sensory system of zebrafish, introduces a stochastic process based on a probability distribution function to model fish movement depending on their surroundings. The model is then compared to experimental data acquired by recording real life zebrafish and their changes in behaviour when introducing points of interest into the environment. Our goal is to implement the model, validate it by comparing it to the real life experimental data, and then possibly extend it by adding interactive control over positions of points of interest and differently shaped environments to see how the fish react.
 
 ## Project plan
 ### [Milestone: First report - 16. 11. 2025](https://github.com/ozbej-k/Skupinsko-Vedenje-25-26-GroupF/milestone/1):
