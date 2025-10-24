@@ -27,4 +27,4 @@ The study used as the starting point for this assignment was [[1]](#1). The pape
 - Prepare presentation about our work
 
 ## References
-<a id="1" href="https://royalsocietypublishing.org/doi/10.1098/rsos.150473">[1] Puy, et al. 2023. Selective social interactions and speed-induced leadership in schooling fish.</a> 
+<a id="1" href="https://royalsocietypublishing.org/doi/10.1098/rsos.150473">[1] Collignon, et al. 2016. A stochastic vision-based model inspired by zebrafish collective behaviour in heterogeneous environments</a> 
