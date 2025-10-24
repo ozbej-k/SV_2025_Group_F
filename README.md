@@ -6,7 +6,7 @@
 - Urban Vesel | [ultraviolet99](https://github.com/ultraviolet99)
 
 ## Project description
-The study used as the starting point for this assignment was [[1]](#1). The paper presents a model describing the visual sensory system of zebrafish, introduces a stochastic process based on a probability distribution function to model fish movement depending on their surroundings. The model is then compared to experimental data acquired by recording real life zebrafish and their changes in behaviour when introducing points of interest into the environment. Our goal is to implement the model, validate it by comparing it to the real life experimental data, and then possibly extend it by adding interactive control over positions of points of interest and differently shaped environments to see how the fish react.
+The study used as the starting point for this assignment was [Collignon et al. 2016](#collignon2016). The paper presents a model describing the visual sensory system of zebrafish, introduces a stochastic process based on a probability distribution function to model fish movement depending on their surroundings. The model is then compared to experimental data acquired by recording real life zebrafish and their changes in behaviour when introducing points of interest into the environment. Our goal is to implement the model, validate it by comparing it to the real life experimental data, and then possibly extend it by adding interactive control over positions of points of interest and differently shaped environments to see how the fish react.
 
 ## Project plan
 ### [Milestone: First report - 16. 11. 2025](https://github.com/ozbej-k/Skupinsko-Vedenje-25-26-GroupF/milestone/1):
@@ -27,4 +27,9 @@ The study used as the starting point for this assignment was [[1]](#1). The pape
 - Prepare presentation about our work
 
 ## References
-<a id="1" href="https://royalsocietypublishing.org/doi/10.1098/rsos.150473">[1] Collignon, et al. 2016. A stochastic vision-based model inspired by zebrafish collective behaviour in heterogeneous environments</a> 
+ ## References
+
+<a id="collignon2016"></a>
+[1] <a href="https://royalsocietypublishing.org/doi/10.1098/rsos.150473">
+Collignon, et al. 2016. *A stochastic vision-based model inspired by zebrafish collective behaviour in heterogeneous environments.*
+</a>
