@@ -1,3 +1,4 @@
+# Collective behaviour 2025/26 project of group F - Model inspired by zebrafish collective behaviour
 
 ## Members of group F
 - Anja Abramovič | [aanja123](https://github.com/aanja123)
