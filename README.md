@@ -28,7 +28,6 @@ The study used as the starting point for this assignment was [Collignon et al. 2
 - Prepare presentation about our work
 
 ## References
- ## References
 
 <a id="collignon2016"></a>
 [1] <a href="https://royalsocietypublishing.org/doi/10.1098/rsos.150473">
