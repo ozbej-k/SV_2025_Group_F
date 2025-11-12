@@ -140,7 +140,7 @@ def create_occupancy_map(df: pd.DataFrame,
     # Plot
     fig, ax = plt.subplots(figsize=(6, 5))
     # imshow expects extent = [xmin, xmax, ymin, ymax]
-    img = ax.imshow(H.T, origin='upper', extent=(xmin, xmax, ymin, ymax), cmap=cmap, aspect='auto', vmax=0.003) # set vmax=0.003 for same color scale as paper
+    img = ax.imshow(H.T, origin='upper', extent=(xmin, xmax, ymin, ymax), cmap=cmap, aspect='auto') # set vmax=0.003 for same color scale as source paper
     #ax.set_xlabel('X (units)')
     #ax.set_ylabel('Y (units)')
     ax.set_title('Occupancy map for bins={}, num_fish={}'.format(bins, df['fish_id'].nunique()))
