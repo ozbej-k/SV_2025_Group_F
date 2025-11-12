@@ -46,7 +46,21 @@ def read_tracking_file(path: str, duration: Optional[float] = None) -> pd.DataFr
         raise FileNotFoundError(path)
 
     # Read raw table. Whitespace separated, comments starting with #
-    raw = pd.read_csv(path, sep=r'\s+', header=None, comment='#', engine='python')
+    # Treat the first line as a comment/header even if it doesn't start with '#' and starts with string.
+    # Detect whether the first line contains only numeric tokens; if not, skip it.
+    skiprows = 0
+    
+    with open(path, 'r', encoding='utf-8') as fh:
+        first_line = fh.readline()
+        tokens = first_line.strip().split()
+        # If the first token cannot be converted to a float, treat the first line as a header and skip it
+        if tokens:
+            try:
+                float(tokens[0])
+            except ValueError:
+                skiprows = 1
+
+    raw = pd.read_csv(path, sep=r'\s+', header=None, comment='#', skiprows=skiprows, engine='python')
     ncols = raw.shape[1]
     nrows = raw.shape[0]
 
