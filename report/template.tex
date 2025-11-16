@@ -1,0 +1,135 @@
+\documentclass[9pt]{pnas-new}
+% Use the lineno option to display guide line numbers if required.
+% Note that the use of elements such as single-column equations
+% may affect the guide line number alignment. 
+
+%\RequirePackage[english,slovene]{babel} % when writing in slovene
+\RequirePackage[slovene,english]{babel} % when writing in english
+
+\templatetype{pnasresearcharticle} % Choose template 
+% {pnasresearcharticle} = Template for a two-column research article
+% {pnasmathematics} = Template for a one-column mathematics article
+% {pnasinvited} = Template for a PNAS invited submission
+
+%\selectlanguage{slovene}
+%\etal{in sod.} % comment out when writing in english
+%\renewcommand{\Authands}{ in } % comment out when writing in english
+%\renewcommand{\Authand}{ in } % comment out when writing in english
+
+\newcommand{\set}[1]{\ensuremath{\mathbf{#1}}}
+\renewcommand{\vec}[1]{\ensuremath{\mathbf{#1}}}
+\newcommand{\uvec}[1]{\ensuremath{\hat{\vec{#1}}}}
+\newcommand{\const}[1]{{\ensuremath{\kappa_\mathrm{#1}}}} 
+
+\newcommand{\num}[1]{#1}
+
+\graphicspath{{./fig/}}
+
+\title{Simulation of zebrafish group behaviour using a stochastic vision-based model}
+
+% Use letters for affiliations, numbers to show equal authorship (if applicable) and to indicate the corresponding author
+\author{Anja Abramovič}
+\author{Ožbej Kresal}
+\author{Matej Rupnik}
+\author{Urban Vesel}
+
+\affil{Collective behaviour course research seminar report} 
+
+% Please give the surname of the lead author for the running footer
+\leadauthor{Abramovič, Kresal, Rupnik, Vesel} 
+
+\selectlanguage{english}
+
+% Please add here a significance statement to explain the relevance of your work
+\significancestatement{Simulation of zebrafish group behaviour using a stochastic vision-based model}{Understanding how individual sensory perception generates collective motion in animal groups remains a fundamental challenge. By implementing and validating a stochastic vision-based model of zebrafish behaviour, we provide a computational tool to explore how environmental structure influences group dynamics across diverse conditions that would be difficult to test experimentally.}{zebrafish | stochastic model | vision-based model | environmental heterogeneity}
+
+%\selectlanguage{slovene}
+
+% Please include corresponding author, author contribution and author declaration information
+%\authorcontributions{Please provide details of author contributions here.}
+%\authordeclaration{Please declare any conflict of interest here.}
+%\equalauthors{\textsuperscript{1}A.O.(Author One) and A.T. (Author Two) contributed equally to this work (remove if not applicable).}
+%\correspondingauthor{\textsuperscript{2}To whom correspondence should be addressed. E-mail: author.two\@email.com}
+
+% Keywords are not mandatory, but authors are strongly encouraged to provide them. If provided, please include two to five keywords, separated by the pipe symbol, e.g:
+\keywords{zebrafish | stochastic model | vision-based model | environmental heterogeneity}
+
+\begin{abstract}
+In this project, we aim to simulate zebrafish group behaviour using a stochastic vision-based model. Our primary goal is to extend the model by introducing interactive elements that allow real-time manipulation of individual fish and environmental features, as well as exploring behaviour across diverse environments. We will validate our simulation by comparing it against experimental zebrafish tracking data. Thus far, we have implemented a basic Boids simulation in a confined rectangular environment and developed tools to generate occupancy heat maps from tracking data, establishing the foundation for implementing the full vision-based model.
+\end{abstract}
+
+\dates{\textbf{\today}}
+\program{BM-RI}
+\vol{2025/26}
+\no{CB:GF} % group ID (COllective behaviour Group F)
+%\fraca{FRIteza/201516.130}
+
+\begin{document}
+
+% Optional adjustment to line up main text (after abstract) of first page with line numbers, when using both lineno and twocolumn options.
+% You should only change this length when you've finalised the article contents.
+\verticaladjustment{-2pt}
+
+\maketitle
+\thispagestyle{firststyle}
+\ifthenelse{\boolean{shortarticle}}{\ifthenelse{\boolean{singlecolumn}}{\abscontentformatted}{\abscontent}}{}
+
+% If your first paragraph (i.e. with the \dropcap) contains a list environment (quote, quotation, theorem, definition, enumerate, itemize...), the line after the list may have some extra indentation. If this is the case, add \parshape=0 to the end of the list environment.
+\dropcap{C}ollective behaviour in animals demonstrates how simple individual actions can give rise to complex group dynamics. The zebrafish (\textit{Danio rerio}) is a prime model for studying such behaviour because of its social tendencies and compatibility with controlled experiments. Different strains exhibit varying levels of cohesion and responsiveness to their environment. In this project, our goal is to recreate these collective behaviours in a simulation, allowing us to explore how subtle differences at the individual level can generate distinct group patterns. By reproducing observed behaviours computationally, we aim to uncover the underlying mechanisms that drive collective motion in zebrafish.
+
+\section*{Related work}
+Collective motion in fish schools has been extensively studied through computational models, beginning with zone-based approaches where individuals follow simple rules of repulsion, alignment, and attraction \cite{COUZIN20021}. While these classical models successfully reproduce emergent collective patterns, they often lack biological realism in sensory perception. Recent advances have shifted toward vision-based approaches, with Strandburg-Peshkin et al. \cite{STRANDBURGPESHKIN2013R709} demonstrating that visual perception networks are crucial for information transfer in animal groups and outperform metric or topological models. Pita et al. \cite{Pita2015Vision} further characterized zebrafish visual capabilities, revealing wide coverage and acute fronto-dorsal vision that influences schooling behaviour. In parallel, Gautrais et al. \cite{Gautrais2012Deciphering} developed stochastic, data-driven methods using probabilistic frameworks rather than deterministic force summations to model animal interactions.
+
+Our work will build upon previous research on the collective behaviour of zebrafish conducted by Collignon et al. \cite{Collignon2016,Seguret2016}. Their studies systematically investigated how environmental heterogeneity and genetic strain influence group dynamics and cohesion in zebrafish populations. Through a combination of controlled experiments and quantitative analysis, they demonstrated that distinct strains exhibit measurable differences in spatial distribution, interaction strength, and collective decision-making. The insights and experimental frameworks established in these works provide the foundation upon which our simulation study is developed.
+
+\section*{Methods}
+The primary objective is to simulate the group behaviour of zebrafish within differently shaped environments that may contain various points of interest. We will implement a model outlined in the source material, and validate our simulation by comparing the results with experimental data obtained from real zebrafish recordings by Collignon et al. \cite{Collignon2016,Seguret2016}. 
+
+To achieve this, we will employ Python with the Pygame library to develop a real-time, two-dimensional simulation of zebrafish behaviour in a confined space. Once the basic model is successfully implemented and verified, we will extend the simulation by adding real-time interactivity, enabling control over individual fish and parts of the environment such as points of interest. Additionally, we will explore how zebrafish react to differently shaped environments and configurations.
+
+The implementation timeline for this project is as follows:
+\begin{enumerate}
+    \item Develop a basic 2 dimensional real-time simulation based on the Boids model proposed by Reynolds \cite{Reynolds1987} in a square confined environment.
+    \item Generate heat maps of fish movement based on experimental data provided in the source papers \cite{Collignon2016,Seguret2016}.
+    \item Extend the simulation by incorporating the stochastic vision-based model for zebrafish behaviour described in the source material \cite{Collignon2016}.
+    \item Validate the simulation by comparing the results with experimental zebrafish data.
+    \item Introduce interactivity into the simulation, by adding the ability to move individual fish and parts of the environment.
+    \item Implement more complex environments beyond the basic square shape to simulate diverse habitats.
+\end{enumerate}
+
+\section*{Results and Discussion}
+So far, we have implemented a basic two-dimensional Boids simulation within a constrained rectangular environment. A screenshot of the simulation is presented in Figure~\ref{boids_screenshot}.
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=75mm]{images/sim.png}
+\caption{Screenshot of the initial Boids simulation with 150 Boids.}
+\label{boids_screenshot}
+\end{figure}
+
+We also developed tools to generate an occupancy heat map from data that records the positions of fish over time. Figure~\ref{occupancy_map} shows an example of a heat map produced from real zebrafish movements recorded in a 1.2 meter square tank. The dataset used for this example is publicly available on Dryad~\cite{collignon2015zebrafishDataset}, where the authors of the original study archived their tracking data. Once the zebrafish movement model is implemented, we will feed the simulated movements into the same pipeline and compare the resulting heat map with the one calculated from the measured data.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=80mm]{images/example_occupancy.png}
+\caption{Example of an occupancy heat map, with 10 fish in a square heterogenous environment with two points of interest in opposing corners.}
+\label{occupancy_map}
+\end{figure}
+
+The occupancy heat map and our implementation of the basic Boids model provide a useful starting point for exploring zebrafish group behaviour. Our next steps, following the implementation timeline, are to gradually expand the simulation until our team successfully reproduces the model described by Collignon et al.~\cite{Collignon2016}, validate it by comparing its output with the experimental data, and then continue extending the model according to our implementation timeline.
+
+\acknow{AA and MR worked on the report structure and content. UV implemented the occupancy heat map generation and OK implemented the basic Boids simulation. UV and OK wrote about their work in the report.}
+\showacknow % Display the acknowledgments section
+
+% \pnasbreak splits and balances the columns before the references.
+% If you see unexpected formatting errors, try commenting out this line
+% as it can run into problems with floats and footnotes on the final page.
+%\pnasbreak
+
+\begin{multicols}{2}
+\section*{\bibname}
+% Bibliography
+\bibliography{./bib/bibliography}
+\end{multicols}
+
+\end{document}
