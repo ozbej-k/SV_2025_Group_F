@@ -54,14 +54,14 @@ As we can see in Figure 1 (Simulation) and Figure 2 (Measured Data), our model s
     <img src="examples/example_occupancy.png" alt="Occupancy heat map – measured data" width="450"/>
     <p><b>Figure 2:</b> Occupancy heat map – measured data.</p>
 </div>
-</div>
+
 
 <div style="display: inline-block; margin: 10px;">
     <img src="source_paper/Source_paper_simulation_figures/10fish_hetero_env.jpeg" alt="Occupancy heat map – measured data" width="450"/>
     <p><b>Figure 3:</b> Occupancy heat map – original paper model simulation. Image from Collignon et al. 2016.</p>
 </div>
 </div>
-
+</div>
 
 ## References
 
