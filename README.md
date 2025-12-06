@@ -47,7 +47,7 @@ As we can see in Figure 1 (Simulation) and Figure 2 (Measured Data), our model s
 
 <div align="center"> 
 <div style="display: inline-block; margin: 10px;"> 
-    <img src="code/fish_sim/simulations/Heterogeneous_10AB_3h_wide.png" alt="Occupancy heat map – model simulation" width="450"/> <p><b>Figure 1:</b> Occupancy heat map – model simulation.</p> 
+    <img src="code/fish_sim/simulations/Heterogeneous_10AB_3h.png" alt="Occupancy heat map – model simulation" width="450"/> <p><b>Figure 1:</b> Occupancy heat map – model simulation.</p> 
 </div>
 
 <div style="display: inline-block; margin: 10px;">
