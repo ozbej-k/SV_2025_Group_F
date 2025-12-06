@@ -2,7 +2,7 @@ import pygame, random
 pygame.init()
 
 W, H = 800, 600
-N = 30
+N = 150
 MAX_SPEED, VISION, MARGIN, EDGE_FORCE = 3, 50, 50, 0.3
 BORDER = pygame.Rect(MARGIN, MARGIN, W - 2 * MARGIN, H - 2 * MARGIN)
 FISH_RADIUS = 5
@@ -26,7 +26,7 @@ class Boid:
       cohesion = sum((b.pos for b in neighbors), pygame.Vector2()) / len(neighbors) - self.pos
       for b in neighbors:
         distance = self.pos.distance_to(b.pos)
-        if distance < 20: 
+        if distance < 15: 
           seperation += (self.pos - b.pos) / (distance or 1)
   
     edge_reflection = pygame.Vector2(
@@ -53,9 +53,12 @@ class Boid:
   def update_state(self, state):
     if state is None: return
 
-    self.vel += 0.01*state.alignment + 0.005*state.cohesion + 0.05*state.seperation + state.edge_reflection + state.dragged_fish_pull
+    self.vel += 0.01*state.alignment + 0.005*state.cohesion + 0.15*state.seperation + state.edge_reflection + state.dragged_fish_pull
     if self.vel.length() > MAX_SPEED:
       self.vel.scale_to_length(MAX_SPEED)
+    if self.vel.length() < 1:
+      self.vel.scale_to_length(1)
+      
     self.pos += self.vel
     
     self.pos.x = min(max(self.pos.x, BORDER.left + FISH_RADIUS), BORDER.right - FISH_RADIUS)
