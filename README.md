@@ -27,6 +27,18 @@ The study used as the starting point for this assignment was [Collignon et al. 2
 - Provide some ideas for future work, improvements and applications of our final model
 - Prepare presentation about our work
 
+## Implementation
+
+### Visualization
+- Implemented basic 2D fish movement animation
+- Added fish tank occupancy heatmap
+
+### Zebrafish perception model
+- Implemented Fish, Spot, and Tank classes, as well as geometry-calculation helper functions.
+- Added fish field of vision and implemented solid-angle calculations for fish and spots (discs).
+- Implemented wall detection and escape-direction calculation.
+- Perception data output now includes ATf and ATs (total solid angle of fish and spots). For each detected fish and spot: ID, solid angle, and direction are provided. Wall distance from the focal fish is included, along with a near_wall indicator and escape directions when near_wall = True.
+
 ## References
 
 <a id="collignon2016"></a>
