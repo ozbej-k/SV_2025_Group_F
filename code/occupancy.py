@@ -19,6 +19,21 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
+def detect_separator(file_path):
+    """Detect whether a file uses commas or spaces as separators."""
+    with open(file_path, 'r', encoding='utf-8') as f:
+        # Read the first non-empty line
+        for line in f:
+            stripped_line = line.strip()
+            if stripped_line:  # Skip empty lines
+                if ',' in stripped_line:
+                    return 'comma'
+                elif ' ' in stripped_line:
+                    return 'space'
+                else:
+                    return 'unknown'
+    return 'unknown'
+
 
 def read_tracking_file(path: str, duration: Optional[float] = None) -> pd.DataFrame:
     """Read a tracking text file into a long-form pandas DataFrame.
@@ -60,7 +75,15 @@ def read_tracking_file(path: str, duration: Optional[float] = None) -> pd.DataFr
             except ValueError:
                 skiprows = 1
 
-    raw = pd.read_csv(path, sep=r'\s+', header=None, comment='#', skiprows=skiprows, engine='python')
+
+    if detect_separator(path) == 'comma':
+        raw = pd.read_csv(path, sep=',', header=None, comment='#', skiprows=skiprows, engine='python')
+    elif detect_separator(path) == "space":
+        raw = pd.read_csv(path, sep=r'\s+', header=None, comment='#', skiprows=skiprows, engine='python')
+    else:
+        raise ValueError(f"Could not detect separator for file: {path} and cant read the file.")
+        
+        
     ncols = raw.shape[1]
     nrows = raw.shape[0]
 
@@ -114,7 +137,8 @@ def read_tracking_file(path: str, duration: Optional[float] = None) -> pd.DataFr
 def create_occupancy_map(df: pd.DataFrame,
                          bins: Tuple[int, int] = (30, 30),
                          tank_size: Optional[Tuple[float, float]] = None,
-                         cmap: str = 'Blues') -> Tuple[plt.Figure, plt.Axes, np.ndarray, np.ndarray, np.ndarray]:
+                         cmap: str = 'Blues',
+                         vmax: float = None) -> Tuple[plt.Figure, plt.Axes, np.ndarray, np.ndarray, np.ndarray]:
     """Create and plot a 2D occupancy heatmap from a long-form DataFrame.
 
     Parameters
@@ -154,7 +178,10 @@ def create_occupancy_map(df: pd.DataFrame,
     # Plot
     fig, ax = plt.subplots(figsize=(6, 5))
     # imshow expects extent = [xmin, xmax, ymin, ymax]
-    img = ax.imshow(H.T, origin='upper', extent=(xmin, xmax, ymin, ymax), cmap=cmap, aspect='auto', vmax=0.003) # set vmax=0.003 for same color scale as source paper
+    if vmax == None:
+        img = ax.imshow(H.T, origin='upper', extent=(xmin, xmax, ymin, ymax), cmap=cmap, aspect='auto')
+    else:
+        img = ax.imshow(H.T, origin='upper', extent=(xmin, xmax, ymin, ymax), cmap=cmap, aspect='auto', vmax=vmax) # set vmax=0.003 for same color scale as source paper
     #ax.set_xlabel('X (units)')
     #ax.set_ylabel('Y (units)')
     ax.set_title('Occupancy map for bins={}, num_fish={}'.format(bins, df['fish_id'].nunique()))
@@ -164,6 +191,7 @@ def create_occupancy_map(df: pd.DataFrame,
     return fig, ax, H, xedges, yedges
 
 if __name__ == '__main__':
+    '''
     file = "../source_paper/Zebrafish_Positions_data/Heterogeneous_10AB"
     dfs = []
 
@@ -177,7 +205,7 @@ if __name__ == '__main__':
     fig, ax, H, xe, ye = create_occupancy_map(df)
     plt.show()
     exit()
-
+    '''
     # Quick example when run as a script (won't run during import).
     import argparse
 
@@ -187,6 +215,7 @@ if __name__ == '__main__':
     # optional duration: provide None if file contains explicit timestamps or you want to use frame indices
     parser.add_argument('--duration', type=float, default=None, help='Optional. Total duration in seconds (if no timestamps in data)')
     parser.add_argument('--out', help='Save figure to this path')
+    parser.add_argument('--vmax', type=float, default=None, help='Optional. Maximum value for color scale in occupancy map')
     args = parser.parse_args()
     
     # Check if input is file or folder and read accordingly
@@ -202,7 +231,7 @@ if __name__ == '__main__':
     else:
         df = pd.DataFrame(columns=['time', 'fish_id', 'x', 'y'])
 
-    fig, ax, H, xe, ye = create_occupancy_map(df, bins=tuple(args.bins))
+    fig, ax, H, xe, ye = create_occupancy_map(df, bins=tuple(args.bins), vmax=args.vmax)
     if args.out:
         fig.savefig(args.out, dpi=200)
     else:

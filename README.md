@@ -39,6 +39,30 @@ The study used as the starting point for this assignment was [Collignon et al. 2
 - Implemented wall detection and escape-direction calculation.
 - Perception data output now includes ATf and ATs (total solid angle of fish and spots). For each detected fish and spot: ID, solid angle, and direction are provided. Wall distance from the focal fish is included, along with a near_wall indicator and escape directions when near_wall = True.
 
+## Results
+
+We used our current model to simulate the movements of zebrafish in a tank, like the one used in Collignon et al. 2016. We created an occupancy heat map, which we then compared to the occupancy heat map created from the measured fish movement data, provided by the authors of the paper.
+
+As we can see in Figure 1 (Simulation) and Figure 2 (Measured Data), our model simulations are fairly accurate. In Figure 3 (Original Paper Simulation) are the results of the original paper's simulation, presented in a heat map.
+
+<div align="center"> 
+<div style="display: inline-block; margin: 10px;"> 
+    <img src="code/fish_sim/simulations/Heterogeneous_10AB_3h_wide.png" alt="Occupancy heat map – model simulation" width="450"/> <p><b>Figure 1:</b> Occupancy heat map – model simulation.</p> 
+</div>
+
+<div style="display: inline-block; margin: 10px;">
+    <img src="examples/example_occupancy.png" alt="Occupancy heat map – measured data" width="450"/>
+    <p><b>Figure 2:</b> Occupancy heat map – measured data.</p>
+</div>
+</div>
+
+<div style="display: inline-block; margin: 10px;">
+    <img src="source_paper/Source_paper_simulation_figures/10fish_hetero_env.jpeg" alt="Occupancy heat map – measured data" width="450"/>
+    <p><b>Figure 3:</b> Occupancy heat map – original paper model simulation. Image from Collignon et al. 2016.</p>
+</div>
+</div>
+
+
 ## References
 
 <a id="collignon2016"></a>
