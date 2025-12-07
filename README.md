@@ -28,43 +28,53 @@ The study used as the starting point for this assignment was [Collignon et al. 2
 - Prepare presentation about our work
 
 ## Implementation
+The implementation of the stochastic vision-based model described in the the source paper can be found in `code/fish_sim`. The model has been extended to run in real-time with a running visualisation of the fish in the environment. 
 
-### Visualization
-- Implemented basic 2D fish movement animation
-- Added fish tank occupancy heatmap
+The model supports bounded homogeneous and heterogeneous environments with spots of interest, where fish percieve their surroundings and gather information based on a 270° field of view and give each percieved stimuli a weight depending on how large they appear on in their field of view.
 
-### Zebrafish perception model
-- Implemented Fish, Spot, and Tank classes, as well as geometry-calculation helper functions.
-- Added fish field of vision and implemented solid-angle calculations for fish and spots (discs).
-- Implemented wall detection and escape-direction calculation.
-- Perception data output now includes ATf and ATs (total solid angle of fish and spots). For each detected fish and spot: ID, solid angle, and direction are provided. Wall distance from the focal fish is included, along with a near_wall indicator and escape directions when near_wall = True.
+A screenshot of the simulation running in a heterogeneous environment with 10 fish and 2 spots of interest can be seen on the following image.
+<div align="center">
+<img src="code/fish_sim/stochastic_sim.png" width="450"/>
+</div>
+
+The model defines an orientation and speed probability density function (PDF) which fish sample at every time step. The speed PDF is built empirically from real life recordings of zebrafish. The orientation PDF is a composite of [von Mises](https://en.wikipedia.org/wiki/Von_Mises_distribution) distributions which define the probability of the fish choosing any direction.
+
+The full orientation PDF $f$ is a composite of the following distributions:
+- $f_0$ - basic-swimming or wall-following behaviour if close to wall,
+- $f_f$ - influence of other percieved fish,
+- $f_s$ - influence of percieved spots of interest.
+
+An example of an orientation PDF can be seen on the following image which contains plots of the PDF in cartesian (left) and polar (right) coordinates, where how different stimuli influence the probability of the fish changing its orientation.
+
+<div align="center">
+<img src="code/fish_sim/orientation_pdf.png" width="650"/>
+</div>
 
 ## Results
+We ran 3 hour long simulations for 4 different environments, which we then compared to real life recorded data of real fish (can be found in `source_paper/Zebrafish_Positions_data`):
+- Homogeneous environment with 1 fish
+- Homogeneous environment with 10 fish
+- Heterogeneous environment with 1 fish and 2 spots
+- Heterogeneous environment with 10 fish and 2 spots
 
-We used our current model to simulate the movements of zebrafish in a tank, like the one used in Collignon et al. 2016. We created an occupancy heat map, which we then compared to the occupancy heat map created from the measured fish movement data, provided by the authors of the paper.
-
-As we can see in Figure 1 (Simulation) and Figure 2 (Measured Data), our model simulations are fairly accurate. In Figure 3 (Original Paper Simulation) are the results of the original paper's simulation, presented in a heat map.
-
-<div align="center"> 
-<div style="display: inline-block; margin: 10px;"> 
-    <img src="code/fish_sim/simulations/Heterogeneous_10AB_3h.png" alt="Occupancy heat map – model simulation" width="450"/> <p><b>Figure 1:</b> Occupancy heat map – model simulation.</p> 
+The following image contains presence probabilities for a homogeneous environment with 1 fish (top two images) and 10 fish (bottom). The experimental data presence probability can be seen in orange and our simulated presence probability in blue.
+<div align="center">
+<img src="code/fish_sim/simulations/homo_presence_probability.png" width="550"/>
 </div>
 
-<div style="display: inline-block; margin: 10px;">
-    <img src="examples/example_occupancy.png" alt="Occupancy heat map – measured data" width="450"/>
-    <p><b>Figure 2:</b> Occupancy heat map – measured data.</p>
+The following image contains presence probabilities for a heterogeneous environment with 1 fish (top two images) and 10 fish (bottom). The heterogeneous environment contains two spots of interest marked with red circles. The experimental data presence probability can be seen in orange and our simulated presence probability in blue.
+<div align="center">
+<img src="code/fish_sim/simulations/hetero_presence_probability.png" width="550"/>
 </div>
+Our model gives very similar presence probabilities, though they deviate from the experimental data presence probabilities more than the model from the original paper which are almost perfect.
+This is likely due to numerical differences in the implementation and is expected to be corrected by tweaking dispersion parameters for the von Mises distributions.
 
+## Future work
+We have successfuly implemented the stochastic model and visualised it with a real-time simulation with drag-drop fish control capability. 
 
-<div style="display: inline-block; margin: 10px;">
-    <img src="source_paper/Source_paper_simulation_figures/10fish_hetero_env.jpeg" alt="Occupancy heat map – measured data" width="450"/>
-    <p><b>Figure 3:</b> Occupancy heat map – original paper model simulation. Image from Collignon et al. 2016.</p>
-</div>
-</div>
-</div>
+Our next step will be to extend the model to allow for non-square environments and control over spots of interest, which will allow us to explore how zebrafish might behave in different environments further.
 
 ## References
-
 <a id="collignon2016"></a>
 [1] <a href="https://royalsocietypublishing.org/doi/10.1098/rsos.150473">
 Collignon, et al. 2016. *A stochastic vision-based model inspired by zebrafish collective behaviour in heterogeneous environments.*
