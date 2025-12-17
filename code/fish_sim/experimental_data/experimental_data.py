@@ -77,50 +77,72 @@ def get_speed_pdf(df : pd.DataFrame, homogeneous=True):
         return inside_counts, outside_counts, bins
 
 if __name__ == "__main__":
-    # df = get_positions("Zebrafish_Positions_data/Heterogeneous_10AB/*01*")
-    # plot_occupancy_map(df, bins=(30, 30), tank_size=(1.2, 1.2), cmap='Blues')
-    # exit()
+    #df = get_positions("Zebrafish_Positions_data/Heterogeneous_10AB/*01*")
+    #plot_occupancy_map(df, bins=(30, 30), tank_size=(1.2, 1.2), cmap='Blues')
+    #exit()
 
 
-    # import matplotlib.pyplot as plt
-    # from matplotlib.animation import FuncAnimation
+    ### ANIMATION with trail of last 3 positions ###
 
-    # # Assuming df is the result of get_positions(path)
-    # df = get_positions("Zebrafish_Positions_data/Heterogeneous_10AB/*02*")
+    import matplotlib.pyplot as plt
+    from matplotlib.animation import FuncAnimation
 
-    # fig, ax = plt.subplots(figsize=(6, 6))
-    # ax.set_xlim(df['x'].min(), df['x'].max())
-    # ax.set_ylim(df['y'].min(), df['y'].max())
-    # ax.set_xlabel('X Position')
-    # ax.set_ylabel('Y Position')
-    # ax.set_title('Fish Trajectories Over Time')
-    # ax.invert_yaxis()  # Optional if coordinates come from images
+    # Assuming df is the result of get_positions(path)
+    df = get_positions("Zebrafish_Positions_data/Heterogeneous_10AB/*02*")
 
-    # fish_ids = df['fish_id'].unique()
-    # colors = plt.cm.tab10.colors  # color palette
+    fig, ax = plt.subplots(figsize=(6, 6))
+    ax.set_xlim(df['x'].min(), df['x'].max())
+    ax.set_ylim(df['y'].min(), df['y'].max())
+    ax.set_xlabel('X Position')
+    ax.set_ylabel('Y Position')
+    ax.set_title('Fish Trajectories Over Time')
+    ax.invert_yaxis()  # Optional if coordinates come from images
 
-    # scatters = {}
-    # trails = {}
-    # for i, fid in enumerate(fish_ids):
-    #     scatters[fid] = ax.plot([], [], 'o', color=colors[i % 10])[0]
-    #     trails[fid] = ax.plot([], [], '-', color=colors[i % 10], alpha=0.5)[0]
+    fish_ids = df['fish_id'].unique()
+    colors = plt.cm.tab10.colors  # color palette
 
-    # times = sorted(df['time'].unique())
-    # def animate(frame):
-    #     t = times[frame]
-    #     for fid in fish_ids:
-    #         # Get last 3 positions (including current)
-    #         df_fish = df[(df['fish_id'] == fid) & (df['time'] <= t)].tail(3)
-    #         if not df_fish.empty:
-    #             # Current position
-    #             scatters[fid].set_data(df_fish['x'].values[-1], df_fish['y'].values[-1])
-    #             # Trail positions
-    #             trails[fid].set_data(df_fish['x'].values, df_fish['y'].values)
-    #     return list(scatters.values()) + list(trails.values())
+    scatters = {}
+    trails = {}
+    for i, fid in enumerate(fish_ids):
+        scatters[fid] = ax.plot([], [], 'o', color=colors[i % 10])[0]
+        trails[fid] = ax.plot([], [], '-', color=colors[i % 10], alpha=0.5)[0]
 
-    # ani = FuncAnimation(fig, animate, frames=len(times), interval=1000, blit=True)
-    # plt.show()
-    # exit()
+    times = sorted(df['time'].unique())
+    def animate(frame):
+        t = times[frame]
+        for fid in fish_ids:
+            # Get last 3 positions (including current)
+            df_fish = df[(df['fish_id'] == fid) & (df['time'] <= t)].tail(3)
+            if not df_fish.empty:
+                # Current position
+                scatters[fid].set_data([df_fish['x'].values[-1]], [df_fish['y'].values[-1]])
+                # Trail positions
+                trails[fid].set_data(df_fish['x'].values, df_fish['y'].values)
+            else:
+                # If no data, clear the scatter and trail
+                scatters[fid].set_data([], [])
+                trails[fid].set_data([], [])
+        return list(scatters.values()) + list(trails.values())
+
+    frame_index = [0]  # Mutable object to hold the current frame index
+
+    # Key press event handler
+    def on_key(event):
+        if event.key == 'up':
+            frame_index[0] = (frame_index[0] + 1) % len(times)
+        elif event.key == 'down': 
+            frame_index[0] = (frame_index[0] - 1) % len(times)  
+        animate(frame_index[0])  # Update the animation manually
+        fig.canvas.draw_idle()  
+    # Connect the key press event to the figure
+    fig.canvas.mpl_connect('key_press_event', on_key)
+
+    # Initial animation setup
+    animate(frame_index[0])  # Draw the first frame
+    plt.show()
+    exit()
+
+    ### SPEED HISTOGRAMS ###
 
     script_path = os.path.join(os.path.dirname(__file__))
     homogeneous_1AB_df = get_positions(f"{script_path}/Zebrafish_Positions_data/Homogeneous_1AB/*")
