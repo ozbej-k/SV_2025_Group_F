@@ -38,7 +38,7 @@ def fish_apparent_size(
     rel_orientation: float,
     fish_length: float,
     fish_width: float,
-    fish_height: float = 0.010,
+    fish_height: float = 0.0115,
     size_gain: float = 1.0,
 ) -> float:
     """
@@ -49,10 +49,9 @@ def fish_apparent_size(
     sin_phi = np.sin(rel_orientation)
     cos_phi = np.cos(rel_orientation)
 
-    w_eff = np.sqrt(
-        (fish_length * sin_phi) ** 2 +
-        (fish_width * cos_phi) ** 2
-    )
+    w_eff = np.sqrt((fish_length * sin_phi) ** 2 +(fish_width * cos_phi) ** 2)
+    
+    #w_eff = np.abs(fish_length * np.sin(rel_orientation)) + np.abs(fish_width * np.cos(rel_orientation))
     
     # possible improvement
     #A = (w_eff * fish_height) / (distance * distance)
@@ -114,6 +113,8 @@ def perceive_fish_fast(
         if d <= 0.0 or d > max_dist:
             continue
 
+        bearing = np.arctan2(dy, dx)
+
         # Direction in focal fish frame
         cos_t = np.cos(-f_theta)
         sin_t = np.sin(-f_theta)
@@ -128,12 +129,15 @@ def perceive_fish_fast(
             continue
 
         # Relative orientation between fish
-        rel_phi = _wrap_angle(other.orientation - f_theta)
+#        rel_phi = _wrap_angle(other.orientation - f_theta)
+        
+        body_view_angle = _wrap_angle(other.orientation - bearing)
 
         # Apparent size
         A = fish_apparent_size(
             distance=d,
-            rel_orientation=rel_phi,
+            rel_orientation=body_view_angle,
+#            rel_orientation=rel_phi,
             fish_length=L,
             fish_width=W,
             size_gain=size_gain,
