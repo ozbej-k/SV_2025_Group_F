@@ -88,7 +88,7 @@ if __name__ == "__main__":
     from matplotlib.animation import FuncAnimation
 
     # Assuming df is the result of get_positions(path)
-    df = get_positions("Zebrafish_Positions_data/Heterogeneous_10AB/*02*")
+    df = get_positions("Zebrafish_Positions_data/Heterogeneous_10AB_fixed_0_5/*02*")
 
     fig, ax = plt.subplots(figsize=(6, 6))
     ax.set_xlim(df['x'].min(), df['x'].max())
