@@ -8,11 +8,13 @@ This script compares:
 for identical fish configurations.
 """
 import config
+import time
 
 from world.fish import Fish
 from world.tank import Tank
 from perception.perception_model import perceive
 
+import numpy as np
 
 def make_test_scene():
 
@@ -24,6 +26,11 @@ def make_test_scene():
         Fish(0.15, 0.05, 0.5, id_given="f2"),   # ahead and left, rotated
         Fish(0.20, -0.10, 1.0, id_given="f3"),  # ahead and right
         Fish(-0.10, 0.00, 0.0, id_given="f4"),  # behind (should be filtered)
+        Fish(0.05, 0.15, 0.0, id_given="f5"),   # left side
+        Fish(0.05, -0.15, 0.0, id_given="f6"),  # right side
+        Fish(0.30, 0.00, np.pi/4, id_given="f7"),  # ahead but rotated
+        Fish(0.05, 0.05, np.pi/2, id_given="f8"),  # to the left, rotated
+        Fish(0.05, -0.05, -np.pi/2, id_given="f9"),  # to the right, rotated
     ]
 
     tank = Tank(width=2.0, height=2.0, origin_at_center=True)
@@ -72,6 +79,8 @@ def main():
     config.FISH_PERCEPTION_MODE = "both"
 
     focal, fishies, tank = make_test_scene()
+    
+    start_time = time.time()
 
     perception = perceive(
         fish=focal,

@@ -20,6 +20,8 @@ from perception.fish_fast import perceive_fish_fast
 
 from world import Fish, Tank, Spot
 
+import time
+
 def perceive_fish_mesh(fish: Fish, fishies: List[Fish]):
     """
     Original mesh-based fish perception.
@@ -130,10 +132,15 @@ def perceive(fish: Fish, fishies: List[Fish], spots: List[Spot], tank: Tank):
             },
         )
 
+
     elif mode == "mesh":
         perception['fish'] = perceive_fish_mesh(fish, fishies)
 
+ 
+
+
     elif mode == "both":
+        start_fast = time.time()
         fish_fast = perceive_fish_fast(
             focal_fish=fish,
             other_fish_list=fishies,
@@ -144,8 +151,14 @@ def perceive(fish: Fish, fishies: List[Fish], spots: List[Spot], tank: Tank):
                 "fish_width": config.FISH_WIDTH,
             },
         )
+        fast_time = time.time() - start_fast
 
+        start_mesh = time.time()
         fish_mesh = perceive_fish_mesh(fish, fishies)
+        mesh_time = time.time() - start_mesh
+
+        print(f"Fast perception time: {fast_time:.6f} seconds")
+        print(f"Mesh perception time: {mesh_time:.6f} seconds")
 
         perception['fish'] = fish_fast
         perception['fish_mesh_debug'] = fish_mesh
