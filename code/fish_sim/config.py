@@ -42,3 +42,9 @@ PDF_BETA_W = 0.01  # weight of the perceived spots during wall-following
 # Factors for weight
 PDF_WF = 1/2  # factor of weight for alpha_0 and alpha_w when fish and spots are present
 PDF_WS = 1/9  # factor of weight for beta_0 and beta_w when fish and spots are present
+
+# Fish perception mode: "fast", "mesh", "both"
+FISH_PERCEPTION_MODE = "mesh"
+
+# threshold for debugging differences
+FISH_DEBUG_EPS = 1e-6

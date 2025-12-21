@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.special import iv
-from scipy.integrate import cumtrapz
+from scipy.integrate import cumulative_trapezoid
 import config
 
 THETA_GRID = np.linspace(-np.pi, np.pi, 720) # all possible orientations for fish
@@ -76,6 +76,6 @@ def total_f(theta, near_wall, mu_w, A_f, A_s, mu_f, mu_s): # full PDF
     return full_pdf
 
 def sample_from_pdf(theta_grid, pdf_values):
-    cdf_values = cumtrapz(pdf_values, theta_grid, initial=0)  # numerical CDF using cumulative trapezoid
+    cdf_values = cumulative_trapezoid(pdf_values, theta_grid, initial=0)  # numerical CDF using cumulative trapezoid
     cdf_values /= cdf_values[-1]  # normalize to 1
     return np.interp(np.random.rand(1), cdf_values, theta_grid)[0]
