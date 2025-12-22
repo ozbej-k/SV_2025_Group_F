@@ -1,6 +1,6 @@
 """
 Perception module that:
-- transforms world-space stimuli to fish-local space
+- transforms world space stimuli to fish space
 - filters by FOV
 - computes mu (direction)
 - computes apparent sizes for fish (fast analytic model)
@@ -14,9 +14,9 @@ import numpy as np
 from typing import List
 
 from geometry.transforms import world_to_local
-from geometry.solid_angle import disc
 
 from perception.fish_fast import perceive_fish_fast
+from perception.disc_fast import solid_angle_fast
 
 from world import Fish, Tank, Spot
 
@@ -37,7 +37,7 @@ def perceive_fish_mesh(fish: Fish, fishies: List[Fish]):
     eye_pos_world = vec2_to_vec3(fish.position)
     fish_orientation = fish.orientation
 
-    # Use the shared double-pyramid fish body mesh
+    # Use the shared double pyramid fish body mesh
     verts_local_other, fish_faces = get_fish_body_mesh(
         length=config.FISH_LENGTH,
         height=config.FISH_HEIGHT,
@@ -186,11 +186,11 @@ def perceive(fish: Fish, fishies: List[Fish], spots: List[Spot], tank: Tank):
 
         mu = compute_mu(local_vec)
 
-        A = disc.solid_angle(
-            center_world - eye_pos_world,
-            np.array([0.0, 0.0, 1.0]),
-            spot.radius,
-        )
+        # Fast disc approximation calibrated to the
+        # mesh based solid angle implementation for the current
+        # spot geometry.
+        center_vec = center_world - eye_pos_world
+        A = solid_angle_fast(center_vec)
 
         perception['spots'].append({
             'id': spot.id,

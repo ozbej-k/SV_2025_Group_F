@@ -168,8 +168,8 @@ def perceive_fish_fast(
 
         # Distance check
         d = np.hypot(dx, dy)
-        if d <= 0.0 or d > max_dist:
-            continue
+        #if d <= 0.0 or d > max_dist:
+        #    continue
 
         bearing = np.arctan2(dy, dx)
 

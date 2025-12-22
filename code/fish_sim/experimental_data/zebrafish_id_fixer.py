@@ -11,6 +11,8 @@ import sys
 
 from scipy.optimize import linear_sum_assignment
 
+import matplotlib.pyplot as plt
+
 PER_SECOND_DISTANCE = 0.5  # default, can be overridden from command line
 
 def load_data_to_dataframe(file_path):
@@ -117,7 +119,7 @@ def map_fix_ids(row_1, row_2, problem_fish_id=None):
     coords1 = np.column_stack([row_1.iloc[0::2].values, row_1.iloc[1::2].values])
     coords2 = np.column_stack([row_2.iloc[0::2].values, row_2.iloc[1::2].values])
 
-    # Build squared-distance matrix and euclidean distances
+    # Build squared distance matrix and euclidean distances
     diff = coords1[:, None, :] - coords2[None, :, :]
     sqdist = np.einsum("ijk,ijk->ij", diff, diff)
     dist = np.sqrt(sqdist)
@@ -185,29 +187,71 @@ def swap_ids_in_dataframe(df, mapping, start_time):
     df.iloc[:, :] = data
 
 # %%
-def check_for_error(index, problem_fish_id, df_raw):
+def check_for_error(index, problem_fish_id, df_source):
     """
     Calc a corrected location for a single fish at time t+1 using
     information from the previous and later rows in the data
 
-    This function does not enforce the distance threshold, it only
-    returns a candidate, midpoint
-    between the raw positions at times t and t+2
+        This function does not enforce the distance threshold, it only
+        returns a candidate position for time t+1.
+
+        It uses the position of the same fish at time t in the provided
+        DataFrame (typically the already tracked/corrected df) and then
+        tries to identify the same physical fish at time t+2 as follows:
+
+        - If a previous frame (t-1) exists, estimate a velocity from
+            t-1 -> t for this fish and predict where it should be at t+2.
+            Among all fish at t+2, pick the one closest to this predicted
+            position.
+        - If t-1 does not exist, fall back to picking the fish at t+2
+            that is closest to the position at t.
+
+        The candidate for time t+1 is then taken as the midpoint between
+        the position at t and the chosen position at t+2.
     """
-    # get later raw row (t+2) for interpolation
-    if index >= len(df_raw) or index + 2 >= len(df_raw):
+    # get later row (t+2) for interpolation
+    if index >= len(df_source) or index + 2 >= len(df_source):
         return None
 
-    # Raw positions at times t and t+2 for the selected fish
-    row_1_raw = df_raw.iloc[index]
-    row_3_raw = df_raw.iloc[index + 2]
+    # Positions at times t and t+2
+    row_t = df_source.iloc[index]
+    row_t2 = df_source.iloc[index + 2]
 
-    x_t = row_1_raw.iloc[2 * problem_fish_id]
-    y_t = row_1_raw.iloc[2 * problem_fish_id + 1]
-    x_t2 = row_3_raw.iloc[2 * problem_fish_id]
-    y_t2 = row_3_raw.iloc[2 * problem_fish_id + 1]
+    # Position of the problematic fish at time t
+    x_t = row_t.iloc[2 * problem_fish_id]
+    y_t = row_t.iloc[2 * problem_fish_id + 1]
 
-    # Proposed position at time t+1 is midpoint between raw positions at t and t+2
+    # All positions at time t+2
+    coords_t2_x = row_t2.iloc[0::2].to_numpy()
+    coords_t2_y = row_t2.iloc[1::2].to_numpy()
+
+    # Choose which fish at t+2 likely corresponds to this fish.
+    if index > 0:
+        # Use velocity from t-1 -> t to predict where it should be at t+2
+        row_tm1 = df_source.iloc[index - 1]
+        x_tm1 = row_tm1.iloc[2 * problem_fish_id]
+        y_tm1 = row_tm1.iloc[2 * problem_fish_id + 1]
+
+        vx = x_t - x_tm1
+        vy = y_t - y_tm1
+
+        x_pred_t2 = x_t + 2.0 * vx
+        y_pred_t2 = y_t + 2.0 * vy
+
+        dx = coords_t2_x - x_pred_t2
+        dy = coords_t2_y - y_pred_t2
+    else:
+        # Fallback: no previous frame, use distance to position at t
+        dx = coords_t2_x - x_t
+        dy = coords_t2_y - y_t
+
+    dist_sq = dx * dx + dy * dy
+    closest_idx = int(np.argmin(dist_sq))
+
+    x_t2 = coords_t2_x[closest_idx]
+    y_t2 = coords_t2_y[closest_idx]
+
+    # Proposed position at time t+1 is midpoint between raw positions at t and chosen position at t+2
     x_mid = (x_t + x_t2) / 2.0
     y_mid = (y_t + y_t2) / 2.0
 
@@ -215,6 +259,11 @@ def check_for_error(index, problem_fish_id, df_raw):
 
 # %%
 def fix_ids(df, df_raw):
+    n_frames = len(df)
+    n_fish = df.shape[1] // 2
+    # flags[frame, fish] = True if at that frame we could not find a
+    # global mapping and had to locally correct that fish
+    flags = np.zeros((n_frames, n_fish), dtype=bool)
     index = 0
 
     while index < (len(df) - 1):
@@ -248,9 +297,9 @@ def fix_ids(df, df_raw):
             row_2 = df.iloc[index + 1]
 
             # proposal for the new location at time t+1
-            proposal = check_for_error(
-                index, fish_id, df_raw
-            )
+            # use the currently tracked/corrected df so that
+            # interpolation works in the same ID space as fix_ids
+            proposal = check_for_error(index, fish_id, df)
 
             if proposal is None:
                 # fallback, use the current position at t+1
@@ -266,17 +315,87 @@ def fix_ids(df, df_raw):
             dx = x_new - x_prev
             dy = y_new - y_prev
             dist = np.sqrt(dx * dx + dy * dy)
+            
+            NEW_PER_SECOND_DISTANCE = PER_SECOND_DISTANCE * 1
 
             if dist > PER_SECOND_DISTANCE and dist > 0:
-                scale = PER_SECOND_DISTANCE / dist
-                x_new = x_prev + dx * scale
-                y_new = y_prev + dy * scale
+                 print(index, fish_id, f"clamping distance {dist:.2f} to {NEW_PER_SECOND_DISTANCE:.2f}")
+                 scale = NEW_PER_SECOND_DISTANCE / dist
+                 x_new = x_prev + dx * scale
+                 y_new = y_prev + dy * scale
 
             # write the clamped position into df for time t+1
             df.iloc[index + 1, 2 * fish_id] = x_new
             df.iloc[index + 1, 2 * fish_id + 1] = y_new
 
+            # mark that at frame index+1 this fish required a local fix
+            flags[index + 1, fish_id] = True
+
         index += 1
+
+    return flags
+
+
+def plot_mapping_failures(flags, title_prefix=""):
+    """Plot a single timeline of frames where any local fixes occurred.
+
+    flags[frame, fish] is expected to be True where, for that fish and
+    frame, no global mapping was found and a local interpolation/clamp
+    was applied. This aggregates over fish and only shows which frames
+    required any interpolation.
+    """
+    if flags.size == 0:
+        return
+
+    n_frames, _ = flags.shape
+
+    # Frames where at least one fish required a local fix
+    frames = np.arange(n_frames)
+    bad_frames = frames[flags.any(axis=1)]
+
+    fig, ax = plt.subplots(figsize=(10, 3))
+    ax.scatter(bad_frames, np.ones_like(bad_frames), s=5)
+    ax.set_ylim(0, 1.5)
+    ax.set_yticks([])
+    ax.set_xlabel("frame index")
+    ax.set_title(f"Frames with local fixes {title_prefix}")
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_mapping_failures_stacked(all_flags, all_titles):
+    """Plot stacked timelines for multiple files.
+
+    all_flags: list of 2D boolean arrays, one per file (frames x fish).
+    all_titles: list of strings, one per file, used as y-labels.
+    """
+    if not all_flags:
+        return
+
+    n_files = len(all_flags)
+    fig, axes = plt.subplots(n_files, 1, sharex=False, figsize=(10, 2 * n_files))
+    if n_files == 1:
+        axes = [axes]
+
+    for i, (flags, title) in enumerate(zip(all_flags, all_titles)):
+        if flags.size == 0:
+            continue
+
+        n_frames, _ = flags.shape
+        frames = np.arange(n_frames)
+        bad_frames = frames[flags.any(axis=1)]
+
+        ax = axes[i]
+        ax.scatter(bad_frames, np.ones_like(bad_frames), s=5)
+        ax.set_ylim(0, 1.5)
+        ax.set_yticks([])
+        ax.set_ylabel(title, rotation=0, ha="right", va="center")
+        ax.set_xlim(0, max(1, n_frames - 1))
+
+    axes[-1].set_xlabel("frame index")
+    fig.suptitle("Frames with local fixes per file")
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.show()
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
@@ -285,7 +404,10 @@ if __name__ == "__main__":
 
     input_folder = sys.argv[1]
     PER_SECOND_DISTANCE = float(sys.argv[2])
-    
+
+    all_flags = []
+    all_titles = []
+
     for file in glob.glob(os.path.join(input_folder, "*.txt")):
         print(f"Processing file: {file}")
 
@@ -295,7 +417,7 @@ if __name__ == "__main__":
         df_tracked = build_tracked_dataframe(df, PER_SECOND_DISTANCE)
         df = df_tracked
         
-        fix_ids(df, df_raw)
+        flags = fix_ids(df, df_raw)
         
         df = df.reset_index()
         
@@ -309,3 +431,12 @@ if __name__ == "__main__":
         fixed_file_path = os.path.join(output_folder, fixed_file_name)
 
         df.to_csv(fixed_file_path, sep=' ', header=True, index=False)
+
+        # Collect flags for stacked plotting across all files.
+        plot_title = f"{base_name}"
+        all_flags.append(flags)
+        all_titles.append(plot_title)
+
+    # After processing all files, show stacked plots of where
+    # global mappings were not found and local fixes were applied.
+    plot_mapping_failures_stacked(all_flags, all_titles)
