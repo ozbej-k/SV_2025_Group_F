@@ -29,27 +29,24 @@ _COEF_OUTER = np.array([
 
 
 def solid_angle_fast(center_vec):
-	"""Fast approximation of disc solid angle seen from the origin.
+    """Fast approximation of disc solid angle seen from the origin.
 
-	center_vec: 3D vector from eye to disc centre in eye-local coords.
-
-	Returns approximate solid angle in steradians, fitted to
+	Returns approximate solid angle fitted to
 	mesh implementation for current spot geometry.
 	"""
+ 
+    v = np.asarray(center_vec, dtype=float)
+    # Lateral distance in the horizontal plane
+    r = float(np.sqrt(v[0] * v[0] + v[1] * v[1]))
+    s = r * r
 
-	v = np.asarray(center_vec, dtype=float)
-	# Lateral distance in the horizontal plane
-	r = float(np.sqrt(v[0] * v[0] + v[1] * v[1]))
-	s = r * r
+    if r <= _SPLIT_R:
+        A = np.polyval(_COEF_INNER, s)
+    elif r > _SPLIT_R and r <= 0.6:
+        A = np.polyval(_COEF_OUTER, s)
+    else:
+        A = 0.0
 
-	if r <= _SPLIT_R:
-		A = np.polyval(_COEF_INNER, s)
-	else:
-		A = np.polyval(_COEF_OUTER, s)
-
-	# Guard against tiny negative values from polynomial approximation
-	if A < 0.0:
-		A = 0.0
-
-	return float(A)
-
+    if A < 0.0:
+        A = 0.0
+    return float(A)
