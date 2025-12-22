@@ -1,12 +1,10 @@
-"""
-Fast analytic fish perception model.
+"""Fast analytic fish perception model.
 
-This module replaces mesh solid angle computation for fish
-with approximation based on distance and relative orientation.
+This module approximates mesh based solid angle for fish using
+double pyramid fish body mesh.
 """
 
 import numpy as np
-
 
 
 # Default perception params
@@ -20,9 +18,10 @@ DEFAULT_PARAMS = {
     # Fish body dimensions (meters)
     "fish_length": 0.035,
     "fish_width": 0.010,
+    "fish_height": 0.010,
 
-    # Global scale factor for apparent size, for tunning
-    "size_gain": 1.08,
+    # Global scale factor for apparent size, calibrated vs mesh
+    "size_gain": 1.0,
 }
 
 
@@ -33,37 +32,98 @@ def _wrap_angle(angle: float) -> float:
     return (angle + np.pi) % (2 * np.pi) - np.pi
 
 
-def fish_apparent_size(
+_INNER_DEG = 11.0
+_MID_DEG = 24.0
+_BACK_START_DEG = 166.5
+_INNER_BUMP_AMP = 0.02      # relative hill height at 0
+_INNER_BASE_SCALE = 1    # lower whole inner band (edges and center) a bit
+
+_PLATEAU = 0.0005317378200909325
+_COEF_MID = np.array([
+    5.97126498e-07,
+    4.88609916e-21,
+    4.62837630e-04,
+])
+_COEF_FOURIER_OUTER = np.array([
+    1.28685448e-03,
+   -7.32868931e-04,
+   -9.08284651e-05,
+   -1.49532151e-05,
+   -1.23054725e-06,
+])
+_COEF_BACK = np.array([
+   -4.89844830e-08,
+   -4.69172755e-07,
+    5.78462404e-04,
+])
+
+# Reference distance used when fitting the above coefficients (meters)
+_REFERENCE_DISTANCE = 0.3
+
+
+def _apparent_size_at_reference_distance(body_view_angle: float) -> float:
+    """Full combined A(θ) at the reference distance using fitted model.
+
+    This encodes the plateau, mid quadratic band, outer Fourier band,
+    and back-facing quadratic override from the calibration script.
+    """
+
+    theta = float(body_view_angle)
+    theta_deg = np.degrees(theta)
+    abs_theta_deg = abs(theta_deg)
+
+    # Back-facing
+    if abs_theta_deg >= _BACK_START_DEG:
+        delta = 180.0 - abs_theta_deg
+        if delta < 0.0:
+            delta = 0.0
+        a2, a1, a0 = _COEF_BACK
+        A_back = (a2 * delta + a1) * delta + a0
+        return max(A_back, 0.0)
+
+    # Reduced angle in [-90, 90] so central structure repeats
+    phi_deg = ((theta_deg + 90.0) % 180.0) - 90.0
+    abs_phi = abs(phi_deg)
+
+    # Inner plateau <= 11 degrees
+    if abs_phi <= _INNER_DEG:
+        # Small symmetric hill, matching back region shape
+        t = abs_phi / _INNER_DEG
+        bump = 1.0 + _INNER_BUMP_AMP * (1.0 - t * t)
+        return (_PLATEAU * _INNER_BASE_SCALE) * bump
+
+    # Mid band 11 to 24 degrees
+    if abs_phi <= _MID_DEG:
+        a2, a1, a0 = _COEF_MID
+        td = phi_deg
+        return (a2 * td + a1) * td + a0
+
+    # Outer band 
+    a0 = _COEF_FOURIER_OUTER[0]
+    val = a0
+    for n in range(1, len(_COEF_FOURIER_OUTER)):
+        val += _COEF_FOURIER_OUTER[n] * np.cos(2.0 * n * theta)
+    return max(val, 0.0)
+
+
+def fish_apparent_size_from_mesh(
     distance: float,
-    rel_orientation: float,
-    fish_length: float,
-    fish_width: float,
-    fish_height: float = 0.0115,
+    body_view_angle: float,
     size_gain: float = 1.0,
 ) -> float:
     """
-    Compute apparent size A of a fish analytically.
+    Fast analytic apparent size using calibrated full model.
     """
 
-    # Effective projected width of an oriented ellipse
-    sin_phi = np.sin(rel_orientation)
-    cos_phi = np.cos(rel_orientation)
+    if distance <= 0.0:
+        return 0.0
 
-    w_eff = np.sqrt((fish_length * sin_phi) ** 2 +(fish_width * cos_phi) ** 2)
-    
-    #w_eff = np.abs(fish_length * np.sin(rel_orientation)) + np.abs(fish_width * np.cos(rel_orientation))
-    
-    # possible improvement
-    #A = (w_eff * fish_height) / (distance * distance)
-    
-    theta_h = 2.0 * np.arctan2(w_eff, 2.0 * distance)
+    A_theta = _apparent_size_at_reference_distance(body_view_angle)
+    if A_theta <= 0.0:
+        return 0.0
 
-    h_eff = fish_height   # new param
-    theta_v = 2.0 * np.arctan2(h_eff, 2.0 * distance)
-
-    A = size_gain * theta_h * theta_v
-    
-    return A
+    scale = (_REFERENCE_DISTANCE / float(distance)) ** 2
+    return size_gain * A_theta * scale
 
 
 # Public API
@@ -93,8 +153,6 @@ def perceive_fish_fast(
 
     fov_half = params["fov_half_angle"]
     max_dist = params["perception_radius"]
-    L = params["fish_length"]
-    W = params["fish_width"]
     size_gain = params["size_gain"]
 
     fx, fy = focal_fish.position
@@ -128,18 +186,13 @@ def perceive_fish_fast(
         if abs(mu) > fov_half:
             continue
 
-        # Relative orientation between fish
-#        rel_phi = _wrap_angle(other.orientation - f_theta)
-        
+        # Relative orientation between fish (body axis vs line-of-sight)
         body_view_angle = _wrap_angle(other.orientation - bearing)
 
-        # Apparent size
-        A = fish_apparent_size(
+        # Apparent size using calibrated analytic full model
+        A = fish_apparent_size_from_mesh(
             distance=d,
-            rel_orientation=body_view_angle,
-#            rel_orientation=rel_phi,
-            fish_length=L,
-            fish_width=W,
+            body_view_angle=body_view_angle,
             size_gain=size_gain,
         )
 

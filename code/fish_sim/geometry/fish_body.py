@@ -1,12 +1,5 @@
 """
-Simple fish body generator: box-shaped mesh.
-
-Returns:
-    vertices: list of 3D points in fish-local coordinates (centered on fish origin)
-    faces: list of triangular faces as triples of vertex indices
-Notes:
-    the fish-local coordinate frame: origin at fish center (or eye, can later offset if needed)
-    forward along +x, left along +y, up +z
+Simple fish body generator: double pyramid mesh.
 """
 import numpy as np
 
@@ -48,29 +41,53 @@ def make_box_tri_faces():
     return faces
 
 
-def get_fish_body_mesh(length=0.03, height=0.01, width=0.006):
+def get_fish_body_mesh(length=0.035, height=0.01, width=0.01):
     """
-    Simple 6-vertex convex fish body mesh (as in Collignon et al.).
-    Centered at origin, pointing +x direction.
+    Simple 6-vertex convex fish body mesh.
+
+    Geometry:
+    - Nose at +L/2 on the x-axis
+    - Tail at -L/2 on the x-axis
+    - A cross-section (shared base) located aprox. 1/3 of the body length back from the nose:
+    at that x, -+height/2 in z (up/down)
+    at that x, -+width/2  in y (left/right)
+    This forms two pyramids sharing this cross-section as a base:
+    - front pyramid height L/3
+    - tail pyramid height 2L/3
+    so the tail pyramid is twice as long along the x-axis.
     """
 
-    L = length
-    H = height
-    W = width
+    L = length          # total length (default 3.5 cm)
+    H = height          # total height (default 1.0 cm)
+    W = width           # total width  (default 1.0 cm)
 
+    # Apex positions along skeleton line
+    x_nose =  L / 2.0
+    x_tail = -L / 2.0
+
+    # Cross-section position: 1/3 of body length back from the nose
+    x_cross = L / 6.0
+
+    # Vertices:
+    # 0: nose tip
+    # 1: tail center
+    # 2: left  (y +W/2)  at cross-section
+    # 3: right (y -W/2)  at cross-section
+    # 4: top   (z +H/2)  at cross-section
+    # 5: bottom(z -H/2)  at cross-section
     vertices = [
-        np.array([ L/2, 0,   0  ]),    # nose tip
-        np.array([-L/2, 0,   0  ]),    # tail center
-        np.array([ 0,   W/2, 0  ]),    # left fin
-        np.array([ 0,  -W/2, 0  ]),    # right fin
-        np.array([ 0,   0,   H/2]),    # top
-        np.array([ 0,   0,  -H/2])     # bottom
+        np.array([x_nose,  0.0,      0.0     ]),  # 0 nose tip
+        np.array([x_tail,  0.0,      0.0     ]),  # 1 tail center
+        np.array([x_cross, W / 2.0,  0.0     ]),  # 2 left
+        np.array([x_cross, -W / 2.0, 0.0     ]),  # 3 right
+        np.array([x_cross, 0.0,      H / 2.0]),   # 4 top
+        np.array([x_cross, 0.0,     -H / 2.0]),   # 5 bottom
     ]
 
-    # Triangulate: convex polyhedron of 6 points
+    # Faces unchanged, two pyramids sharing the (2,3,4,5) base
     faces = [
-        (0,2,4), (0,4,3), (0,3,5), (0,5,2),
-        (1,4,2), (1,2,5), (1,5,3), (1,3,4)
+        (0,2,4), (0,4,3), (0,3,5), (0,5,2),   # nose pyramid
+        (1,4,2), (1,2,5), (1,5,3), (1,3,4)    # tail pyramid
     ]
 
     return vertices, faces

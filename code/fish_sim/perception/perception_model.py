@@ -29,7 +29,7 @@ def perceive_fish_mesh(fish: Fish, fishies: List[Fish]):
     """
 
     from geometry.transforms import rotation_matrix_z
-    from geometry.fish_body import make_fish_box_vertices, make_box_tri_faces
+    from geometry.fish_body import get_fish_body_mesh
     from geometry.solid_angle import polyhedron
 
     perceived = []
@@ -37,12 +37,12 @@ def perceive_fish_mesh(fish: Fish, fishies: List[Fish]):
     eye_pos_world = vec2_to_vec3(fish.position)
     fish_orientation = fish.orientation
 
-    verts_local_other = make_fish_box_vertices(
-        config.FISH_LENGTH,
-        config.FISH_WIDTH,
-        config.FISH_HEIGHT,
+    # Use the shared double-pyramid fish body mesh
+    verts_local_other, fish_faces = get_fish_body_mesh(
+        length=config.FISH_LENGTH,
+        height=config.FISH_HEIGHT,
+        width=config.FISH_WIDTH,
     )
-    fish_faces = make_box_tri_faces()
 
     for other in fishies:
         if other is fish:
@@ -129,6 +129,7 @@ def perceive(fish: Fish, fishies: List[Fish], spots: List[Spot], tank: Tank):
                 "perception_radius": config.FOV_DEGREES,
                 "fish_length": config.FISH_LENGTH,
                 "fish_width": config.FISH_WIDTH,
+                "fish_height": config.FISH_HEIGHT,
             },
         )
 

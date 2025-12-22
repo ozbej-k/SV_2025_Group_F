@@ -79,8 +79,6 @@ def main():
     config.FISH_PERCEPTION_MODE = "both"
 
     focal, fishies, tank = make_test_scene()
-    
-    start_time = time.time()
 
     perception = perceive(
         fish=focal,
