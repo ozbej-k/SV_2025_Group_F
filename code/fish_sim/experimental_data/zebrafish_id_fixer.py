@@ -258,12 +258,13 @@ def check_for_error(index, problem_fish_id, df_source):
     return (x_mid, y_mid)
 
 # %%
-def fix_ids(df, df_raw):
+def fix_ids(df, df_raw, split=False):
     n_frames = len(df)
     n_fish = df.shape[1] // 2
     # flags[frame, fish] = True if at that frame we could not find a
     # global mapping and had to locally correct that fish
     flags = np.zeros((n_frames, n_fish), dtype=bool)
+    split_points = []
     index = 0
 
     while index < (len(df) - 1):
@@ -289,6 +290,12 @@ def fix_ids(df, df_raw):
             swap_ids_in_dataframe(df, mapping, index + 1)
             print("Applied mapping:", mapping)
             continue
+
+        # If no ideal mapping exists and splitting is enabled, record split point
+        if split:
+            # split between frames index and index+1, but continue fixing locally
+            print(f"No global mapping found at time {index}; marking split here.")
+            split_points.append(index + 1)
 
         # 2) If no ideal mapping exists, correct each suspicious fish at this frame individually using interpolation
         for fish_id in sorted_indexes:
@@ -333,7 +340,7 @@ def fix_ids(df, df_raw):
 
         index += 1
 
-    return flags
+    return flags, split_points
 
 
 def plot_mapping_failures(flags, title_prefix=""):
@@ -398,45 +405,85 @@ def plot_mapping_failures_stacked(all_flags, all_titles):
     plt.show()
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print("use: python zebrafish_id_fixer.py <input_folder> <METERS_PER_SECOND>=0.5")
+    if len(sys.argv) not in (3, 4):
+        print("use: python zebrafish_id_fixer.py <input_folder> <METERS_PER_SECOND>=3.5 <split>=False")
         sys.exit(1)
 
     input_folder = sys.argv[1]
     PER_SECOND_DISTANCE = float(sys.argv[2])
 
+    split = False
+    if len(sys.argv) == 4:
+        arg = sys.argv[3].strip().lower()
+        split = arg in ("true", "yes", "y", "split")
+
     all_flags = []
     all_titles = []
+
+    speed_str = str(PER_SECOND_DISTANCE).replace('.', '_')
 
     for file in glob.glob(os.path.join(input_folder, "*.txt")):
         print(f"Processing file: {file}")
 
-        df_raw = load_data_to_dataframe(file)
-        df = df_raw.copy()
+        df_raw_full = load_data_to_dataframe(file)
+        base_name = os.path.basename(file)
+        base_no_ext = os.path.splitext(base_name)[0]
 
-        df_tracked = build_tracked_dataframe(df, PER_SECOND_DISTANCE)
-        df = df_tracked
-        
-        flags = fix_ids(df, df_raw)
-        
-        df = df.reset_index()
-        
-        # Create output folder with "_fixed" suffix and speed param
-        output_folder = input_folder.rstrip(os.sep) + "_fixed_" + str(PER_SECOND_DISTANCE).replace('.', '_')
+        # Create output folder with appropriate suffix (shared for this batch)
+        if split:
+            output_folder = input_folder.rstrip(os.sep) + "_fixed_" + speed_str + "_split"
+        else:
+            output_folder = input_folder.rstrip(os.sep) + "_fixed_" + speed_str
         os.makedirs(output_folder, exist_ok=True)
 
-        # Generate fixed file path with "_fixed" suffix and speed param
-        base_name = os.path.basename(file)
-        fixed_file_name = os.path.splitext(base_name)[0] + "_fixed_" + str(PER_SECOND_DISTANCE).replace('.', '_') + ".txt"
-        fixed_file_path = os.path.join(output_folder, fixed_file_name)
+        # Create subfolder so all segments from one original file are grouped together
+        per_file_folder = os.path.join(output_folder, base_no_ext)
+        os.makedirs(per_file_folder, exist_ok=True)
 
-        df.to_csv(fixed_file_path, sep=' ', header=True, index=False)
+        # Process file: always track + fix once, then optionally split outputs
+        df = df_raw_full.copy()
+        df_tracked = build_tracked_dataframe(df, PER_SECOND_DISTANCE)
+        df = df_tracked
 
-        # Collect flags for stacked plotting across all files.
-        plot_title = f"{base_name}"
-        all_flags.append(flags)
-        all_titles.append(plot_title)
+        flags, split_points = fix_ids(df, df_raw_full, split=split)
 
-    # After processing all files, show stacked plots of where
-    # global mappings were not found and local fixes were applied.
-    plot_mapping_failures_stacked(all_flags, all_titles)
+        df = df.reset_index()
+
+        if not split or not split_points:
+            # No splitting requested or no split points found: single output
+            base_core = f"{base_no_ext}_fixed_{speed_str}"
+            fixed_file_name = base_core + ".txt"
+            fixed_file_path = os.path.join(per_file_folder, fixed_file_name)
+
+            df.to_csv(fixed_file_path, sep=' ', header=True, index=False)
+
+            plot_title = f"{base_name}"
+            all_flags.append(flags)
+            all_titles.append(plot_title)
+        else:
+            # Split into multiple segments based on recorded split points
+            n_frames = len(df)
+            # Deduplicate and sort
+            split_points_unique = sorted({p for p in split_points if 0 < p < n_frames})
+
+            boundaries = [0] + split_points_unique + [n_frames]
+
+            for segment_index in range(1, len(boundaries)):
+                start = boundaries[segment_index - 1]
+                end = boundaries[segment_index]
+
+                #df_segment = df.iloc[start:end].reset_index()
+                df_segment = df.iloc[start:end]
+                flags_segment = flags[start:end]
+
+                base_core = f"{base_no_ext}_fixed_{speed_str}_{segment_index}"
+                fixed_file_name = base_core + ".txt"
+                fixed_file_path = os.path.join(per_file_folder, fixed_file_name)
+                df_segment.to_csv(fixed_file_path, sep=' ', header=True, index=False)
+
+                plot_title = f"{base_name}_part{segment_index}"
+                all_flags.append(flags_segment)
+                all_titles.append(plot_title)
+
+    # After processing all files, show stacked plots of where global mappings were not found and local fixes were applied.
+    #plot_mapping_failures_stacked(all_flags, all_titles)
