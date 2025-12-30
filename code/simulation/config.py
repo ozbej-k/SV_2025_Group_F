@@ -26,7 +26,7 @@ FOV_HALF = FOV_DEGREES / 2.0  # 135 deg
 PDF_DW = 0.05  # meters
 
 # Dispersion parameters
-PDF_K0 = 6.3  # basic-swimming dispersion
+PDF_K0 = 6.3 # basic-swimming dispersion
 PDF_KW = 20  # wall-following dispersion
 PDF_KF = 20  # percieved fish dispersion
 PDF_KS = 20  # spot of interest dispersion
@@ -35,7 +35,7 @@ PDF_KWB = 3
 
 # Weights
 PDF_ALPHA_0 = 17.5 # weight of the perceived fish during basic-swimming
-PDF_ALPHA_W = 5   # weight of the perceived fish during wall-following
+PDF_ALPHA_W = 5    # weight of the perceived fish during wall-following
 PDF_BETA_0 = 0.15  # weight of the perceived spots during basic-swimming
 PDF_BETA_W = 0.01  # weight of the perceived spots during wall-following
 

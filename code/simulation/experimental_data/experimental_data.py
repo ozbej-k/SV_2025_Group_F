@@ -27,7 +27,7 @@ def get_positions(path):
     dfs = [get_pos(f, fi) for fi, f in enumerate(files)]
     return pd.concat(dfs, ignore_index=True)
 
-def plot_presence_probability(ax, df, bins=(30, 30), tank_pos=(0, 0), tank_size=(1.2, 1.2), cmap='Blues'):
+def plot_presence_probability(df, bins=(30, 30), tank_pos=(0, 0), tank_size=(1.2, 1.2), cmap='Blues'):
     xs = df['x'].to_numpy()
     ys = df['y'].to_numpy()
 
@@ -42,8 +42,8 @@ def plot_presence_probability(ax, df, bins=(30, 30), tank_pos=(0, 0), tank_size=
     H, _, _ = np.histogram2d(xs, ys, bins=bins, range=[[xmin, xmax], [ymin, ymax]])
     H = H / len(xs)
 
-    img = ax.imshow(H.T, origin='upper', extent=(xmin, xmax, ymin, ymax), cmap=cmap, aspect='auto', vmax=0.003)
-    return img
+    plt.imshow(H.T, origin='upper', extent=(xmin, xmax, ymin, ymax), cmap=cmap, aspect='auto', vmax=0.003)
+    return H
     
 def get_speed_pdf(df : pd.DataFrame, homogeneous=True):
     df["dx"] = df.groupby("fish_id")["x"].diff()
@@ -77,9 +77,19 @@ def get_speed_pdf(df : pd.DataFrame, homogeneous=True):
         return inside_counts, outside_counts, bins
 
 if __name__ == "__main__":
-    #df = get_positions("Zebrafish_Positions_data/Heterogeneous_10AB/*01*")
-    #plot_occupancy_map(df, bins=(30, 30), tank_size=(1.2, 1.2), cmap='Blues')
-    #exit()
+    df_real = get_positions("Zebrafish_Positions_data/Heterogeneous_10AB/*01*")
+    df_sim = pd.read_csv("../simulations/Homogeneous_1AB_fast.csv")
+    df_sim["x"] +=  0.6
+    df_sim["y"] +=  0.6
+    hist_real = plot_presence_probability(df_real, bins=(30, 30), tank_size=(1.2, 1.2), cmap='Blues')
+    hist_sim = plot_presence_probability(df_sim, bins=(30, 30), tank_size=(1.2, 1.2), cmap='Blues')
+    # figure out how diff they are
+    # diff(real, real) should be 0
+    plt.ylim(0, 1.2)
+    plt.xlim(0, 1.2)
+    plt.axis("equal")
+    plt.show()
+    exit()
 
 
     # ### ANIMATION with trail of last 3 positions ###

@@ -73,13 +73,13 @@ def run_and_save_sim(tank, fishies, spots, duration_s, save_path=None):
         plt.show()
     else:
         positions.to_csv(f"{save_path}.csv", index=False)
-
+        return positions
 
 tank = Tank(config.TANK_WIDTH, config.TANK_HEIGHT, origin_at_center=True)
 
 np.random.seed(1)
 num_fishies = 1
-num_fishies = 10
+# num_fishies = 10
 # num_fishies = 40
 # fishies = [Fish(0.40, 0.35, 0)]
 # fishies = [Fish(0.40, 0.40, np.pi), Fish(0.30, 0.40, 0)]
@@ -97,6 +97,7 @@ spots = [
 # pprint(perceive(fishies[0], fishies, spots, tank))
 # exit()
 
+# run simulation and save locations
 # import time
 # time_start = time.time()
 # # run_and_save_sim(tank, fishies, spots, 60*60*10, "simulations/Homogeneous_1AB_fast")
