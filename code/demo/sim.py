@@ -9,6 +9,15 @@ import matplotlib.pyplot as plt
 from orientation_PDF import total_f, THETA_GRID, sample_from_pdf
 from experimental_data.speed_PDF import SPEED_PDF_MAP
 from draw_utils import draw_fish, draw_spot, draw_tank, world_to_screen, screen_to_world
+from PIL import Image
+
+def save_tank(tank : Tank, path):
+    img_uint8 = tank.wall_grid.astype(np.uint8) * 255
+    Image.fromarray(img_uint8, mode="L").save(path)
+
+def load_tank(tank : Tank, path):
+    img = Image.open(path).convert("L")
+    tank.wall_grid = np.array(img) > 0
 
 def calculate_next_fish_state(tank: Tank, fish: Fish, perception, time_step):
     d = perception["wall_state"]["distance"]  # distance from wall
@@ -129,6 +138,7 @@ draw_mode = False
 prev_x, prev_y = None, None  
 brush_radius = 1 
 tank.set_wall_grid(grid)
+load_tank(tank, "test_tank.png")
 
 # grid[65:80, :] = True
 # fish_loop(fishies, spots, tank, config.FISH_FPS)
@@ -169,6 +179,13 @@ while running:
                 print(f"Draw mode: {draw_mode}")
             elif e.key == pygame.K_SPACE:
                 paused = not paused
+                print("paused", paused)
+            elif e.key == pygame.K_s:
+                save_tank(tank, "current_tank.png")
+                print("saved tank to current_tank.png")
+            elif e.key == pygame.K_c:
+                tank.wall_grid = np.zeros((GRID_HEIGHT, GRID_WIDTH), dtype=bool)
+                print("cleared drawn tank")
         elif e.type == pygame.MOUSEBUTTONDOWN:
             p = np.array(e.pos)
             _selected = None if not draw_mode else selected_fish
@@ -207,13 +224,13 @@ while running:
                         gx, gy = world_to_grid(ix, iy)
                         y_indices, x_indices = np.ogrid[:GRID_HEIGHT, :GRID_WIDTH]
                         mask = (x_indices - gx)**2 + (y_indices - gy)**2 <= brush_radius**2
-                        grid[mask] = True
+                        tank.wall_grid[mask] = True
             else:
                 #First point
                 gx, gy = world_to_grid(x, y)
                 y_indices, x_indices = np.ogrid[:GRID_HEIGHT, :GRID_WIDTH]
                 mask = (x_indices - gx)**2 + (y_indices - gy)**2 <= brush_radius**2
-                grid[mask] = True
+                tank.wall_grid[mask] = True
             prev_x, prev_y = x, y
         
     if draw_mode and not pygame.mouse.get_pressed()[0]:
@@ -229,7 +246,7 @@ while running:
     draw_tank(screen, tank)
     for gy in range(GRID_HEIGHT):
         for gx in range(GRID_WIDTH):
-            if grid[gy, gx]:
+            if tank.wall_grid[gy, gx]:
                 # Draw one grid cell
                 x1, y1 = grid_to_world(gx, gy)
                 x2, y2 = grid_to_world(gx + 1, gy + 1)
