@@ -31,9 +31,13 @@ def draw_fish(screen, fish : Fish, interpolation_t):
         position = fish.position
         orientation = fish.orientation
     else:
-        color = (100, 200, 255)
+        if fish.selected:
+            color = (255, 150, 255)
+        else:
+            color = (100, 200, 255)
         position = (1 - interpolation_t) * fish.prev_position + interpolation_t * fish.position
         orientation = lerp_angle(fish.prev_orientation, fish.orientation, interpolation_t)
+
 
     length = config.FISH_LENGTH
     width = config.FISH_WIDTH
@@ -56,8 +60,7 @@ def draw_fish(screen, fish : Fish, interpolation_t):
         pygame.Vector2(-length/4,  width/6), # tail bottom tip
         pygame.Vector2( length/4,  width/2), # lower mid-body
     ]
-    
-    
+
     rotated = [corner.rotate_rad(orientation) + pygame.Vector2(*position) for corner in points]
     points = [world_to_screen(p.x, p.y) for p in rotated]
 

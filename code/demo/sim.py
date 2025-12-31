@@ -46,8 +46,9 @@ def calculate_next_fish_state(tank: Tank, fish: Fish, perception, time_step):
                                  [tank.xmax - config.FISH_LENGTH, tank.ymax - config.FISH_LENGTH])
     fish.next_orientation = new_orientation
     fish.next_speed = new_speed_vec
+    return pdf_values
     
-def fish_loop(fishies, spots, tank, time_step):
+def fish_loop(fishies, spots, tank, time_step, paused=False):
     fish : Fish
     # save previous fish states for interpolation
     for fish in fishies:
@@ -55,16 +56,22 @@ def fish_loop(fishies, spots, tank, time_step):
         fish.prev_orientation = fish.orientation
 
     # calculate new fish states
+    pdf_values = None
     for fish in fishies:
         if fish.dragged: continue
         perception = perceive(fish, fishies, spots, tank)
-        calculate_next_fish_state(tank, fish, perception, time_step=time_step)
+        
+        if fish is selected_fish:
+            pdf_values = calculate_next_fish_state(tank, fish, perception, time_step=time_step)
+        else:
+            calculate_next_fish_state(tank, fish, perception, time_step=time_step)
 
     # update fishies
-    for fish in fishies:
-        if fish.dragged: continue
-        fish.update()
-
+    if not paused:
+        for fish in fishies:
+            if fish.dragged: continue
+            fish.update()
+    return pdf_values
 
 def run_and_save_sim(tank, fishies, spots, duration_s, save_path=None):
     positions = []
@@ -100,12 +107,14 @@ def grid_to_world(gx, gy):
 
 tank = Tank(config.TANK_WIDTH, config.TANK_HEIGHT, origin_at_center=True)
 
+
 num_fishies = 1
-fishies = [Fish(x, y, theta) for x, y, theta in zip(
-    np.random.uniform(tank.xmin, tank.xmax, num_fishies),
-    np.random.uniform(tank.ymin, tank.ymax, num_fishies),
-    np.random.uniform(0, 2*np.pi, num_fishies)
-)]
+# fishies = [Fish(x, y, theta) for x, y, theta in zip(
+#     np.random.uniform(tank.xmin, tank.xmax, num_fishies),
+#     np.random.uniform(tank.ymin, tank.ymax, num_fishies),
+#     np.random.uniform(0, 2*np.pi, num_fishies)
+# )]
+fishies = [Fish(0, 0, 0)]
 
 spots = [
     Spot(0.35, 0.35, config.SPOT_RADIUS, config.SPOT_HEIGHT),
@@ -121,6 +130,11 @@ prev_x, prev_y = None, None
 brush_radius = 1 
 tank.set_wall_grid(grid)
 
+# grid[65:80, :] = True
+# fish_loop(fishies, spots, tank, config.FISH_FPS)
+# plt.imshow(grid)
+# plt.show()
+
 # run_and_save_sim(tank, fishies, spots, 600, None)
 # run_and_save_sim(tank, fishies, spots, 600, "simulations/Heterogeneous_10AB")
 # exit()
@@ -132,7 +146,11 @@ screen = pygame.display.set_mode((config.WIDTH, config.HEIGHT), pygame.RESIZABLE
 clock = pygame.time.Clock()
 
 elapsed, running = 0.0, True
-dragged_fish = None
+dragged_fish = selected_fish = None
+selected_fish = fishies[0]
+selected_fish.selected = True
+selected_fish_orientation_pdf = None
+paused = False
 while running:
     dt = clock.tick(config.DISPLAY_FPS) / 1000.0  # seconds since last frame
     elapsed += dt
@@ -149,12 +167,24 @@ while running:
                 draw_mode = not draw_mode
                 prev_x, prev_y = None, None
                 print(f"Draw mode: {draw_mode}")
+            elif e.key == pygame.K_SPACE:
+                paused = not paused
         elif e.type == pygame.MOUSEBUTTONDOWN:
             p = np.array(e.pos)
+            _selected = None if not draw_mode else selected_fish
             for fish in fishies:
+                fish.selected = False
                 if np.linalg.norm(world_to_screen(*fish.position) - p) < 20: 
-                    fish.dragged, dragged_fish = True, fish 
+                    fish.dragged, dragged_fish = True, fish
+                    _selected = fish
                     break
+            
+            if _selected is not None:
+                selected_fish = _selected
+                selected_fish.selected = True
+            elif not draw_mode:
+                selected_fish = None
+                selected_fish_orientation_pdf = None
         elif e.type == pygame.MOUSEBUTTONUP:
             if dragged_fish: 
                 dragged_fish.dragged, dragged_fish = False, None
@@ -191,8 +221,8 @@ while running:
 
     # update every FISH_TIME_STEP seconds
     if elapsed >= config.FISH_TIME_STEP:
-        elapsed -= config.FISH_TIME_STEP
-        fish_loop(fishies, spots, tank, config.FISH_TIME_STEP)
+        elapsed = 0
+        selected_fish_orientation_pdf = fish_loop(fishies, spots, tank, config.FISH_TIME_STEP, paused)
 
     # draw everything
     screen.fill((15, 15, 30))  #background
@@ -212,12 +242,18 @@ while running:
                 top    = min(sy1, sy2)
                 bottom = max(sy1, sy2)
 
-                pygame.draw.rect(
-                    screen,
-                    (255, 255, 255),
-                    (left, top, right - left + 1, bottom - top + 1)
-                )
+                pygame.draw.rect(screen, (255, 255, 255), (left, top, right - left + 1, bottom - top + 1))
     
+    if selected_fish_orientation_pdf is not None:
+        # pdf might be out of sync with actual fish by 1 fish frame
+        x = (0.1 + selected_fish_orientation_pdf) * 0.3 * np.cos(THETA_GRID + selected_fish.orientation)
+        y = (0.1 + selected_fish_orientation_pdf) * 0.3 * np.sin(THETA_GRID + selected_fish.orientation)
+
+        screen_x, screen_y = world_to_screen(x, y)
+        points = np.column_stack((screen_x, screen_y)).astype(int)
+        if len(points) > 1:
+            pygame.draw.lines(screen, (0, 200, 255), False, points, 2)
+
     if draw_mode:
         message = "Drag and press mouse to draw"
     else:
@@ -226,7 +262,7 @@ while running:
     text_surface = font.render(message, True, (255, 255, 255))
     screen.blit(text_surface, (10, 10))
     # interpolate fish position and orientation
-    t = elapsed / config.FISH_TIME_STEP
+    t = np.clip(elapsed / config.FISH_TIME_STEP, 0, 1)
     for fish in fishies:
         draw_fish(screen, fish, t)
 

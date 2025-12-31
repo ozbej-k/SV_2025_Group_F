@@ -32,6 +32,7 @@ PDF_KF = 20  # percieved fish dispersion
 PDF_KS = 20  # spot of interest dispersion
 
 PDF_KWB = 3
+PDF_KWB = 1
 
 # Weights
 PDF_ALPHA_0 = 17.5 # weight of the perceived fish during basic-swimming
