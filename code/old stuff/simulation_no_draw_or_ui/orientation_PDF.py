@@ -19,7 +19,7 @@ def f0_forward(theta, _): # fish going forward
     return von_mises(theta, config.PDF_K0)
 
 def f0_wall(theta, mu_w): # fish following walls
-    # deviation from source: preffer the direction along the wall which is closer to forward
+    # deviation from source: perffer the direction along the wall which is closer to forward
     weights = np.exp(config.PDF_KWB * np.cos(mu_w))
     return f_component(theta, weights, np.sum(weights), mu_w, config.PDF_KW)
 
@@ -69,7 +69,7 @@ def total_f(theta, near_wall, mu_w, A_f, A_s, mu_f, mu_s): # full PDF
     # ax.plot(THETA_GRID, f0_pdf, color='blue', linewidth=1, label=r"$f_0(\theta)$")
     # ax.plot(THETA_GRID, fF_pdf, color='red', linewidth=1, label=r"$f_f(\theta)$")
     # ax.plot(THETA_GRID, fS_pdf, color='black', linewidth=1, label=r"$f_s(\theta)$")
-    # ax.plot(THETA_GRID, full_pdf, color='green', linewidth=2, label=r"$f(\theta)$", linestyle="--")
+    # ax.plot(THETA_GRID, full_pdf, color='green', linewidth=2, label=r"$f(\theta)$")
     # # ax.fill_between(THETA_GRID, 0, full_pdf, color='blue', alpha=0.3)
     # ax.set_yticklabels([])
     # plt.legend(loc='best')

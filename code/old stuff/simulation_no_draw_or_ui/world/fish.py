@@ -23,7 +23,6 @@ class Fish:
         self.next_orientation = None
         self.next_speed = None
         self.dragged = False
-        self.selected = False
 
         # interpolation values
         self.prev_position = self.position.copy()

@@ -25,10 +25,6 @@ def perceive(fish: Fish, fishies: List[Fish], spots: List[Spot], tank: Tank):
     sin_theta = np.sin(-o_theta)
 
     for other_fish in fishies:
-        
-        if tank.ray_intersects_wall(fish.position, other_fish.position):
-            continue
-
         dx = other_fish.position[0] - ox
         dy = other_fish.position[1] - oy
 
@@ -56,11 +52,8 @@ def perceive(fish: Fish, fishies: List[Fish], spots: List[Spot], tank: Tank):
     fish_orientation = fish.orientation
 
     for spot in spots:
-        
-        if tank.ray_intersects_wall(fish.position, spot.position[:2]):
-            continue  # Skip this spot if a wall is between fish and spot
-
-        center_vec = spot.position - eye_pos_world
+        center_world = np.array([spot.x, spot.y, spot.height])
+        center_vec = center_world - eye_pos_world
 
         mu = (np.arctan2(center_vec[1], center_vec[0]) - fish_orientation)
         if np.linalg.norm(center_vec) < spot.radius:
@@ -79,12 +72,8 @@ def perceive(fish: Fish, fishies: List[Fish], spots: List[Spot], tank: Tank):
 
     # Wall perception
     d_nearest, mu_w1_world, mu_w2_world = tank.tangent_wall_directions(fish.position)
-    if mu_w1_world is None or mu_w2_world is None:
-        mu_w1 = None
-        mu_w2 = None
-    else:
-        mu_w1 = (mu_w1_world - fish_orientation + np.pi) % (2 * np.pi) - np.pi
-        mu_w2 = (mu_w2_world - fish_orientation + np.pi) % (2 * np.pi) - np.pi
+    mu_w1 = (mu_w1_world - fish_orientation + np.pi) % (2 * np.pi) - np.pi
+    mu_w2 = (mu_w2_world - fish_orientation + np.pi) % (2 * np.pi) - np.pi
 
     perception["wall_state"] = {
         "mu_w1": mu_w1,

@@ -2,17 +2,12 @@
 FISH_FPS = 3 # zebrafish beat their tails about 3 times per second on average
 FISH_TIME_STEP = 1.0 / FISH_FPS
 DISPLAY_FPS = 60
-WIDTH, HEIGHT = 1050, 650
-SIDEBAR_WIDTH = 0.4
-LINE_WIDTH = 0.005
+WIDTH, HEIGHT = 800, 600
 def scale(width, height): return min(width, height) * 0.65
 SCALE = scale(WIDTH, HEIGHT)
 
 # Tank geometry (meters)
-TANK_WIDTH = 1.6
-TANK_HEIGHT = 1.20
-GRID_CELL_SIZE = 0.01
-BRUSH_RADIUS = 1
+TANK_WIDTH = TANK_HEIGHT = 1.20
 
 # Fish geometry (meters) - values from the paper
 FISH_LENGTH = 0.035  # 3.5 cm
@@ -37,7 +32,6 @@ PDF_KF = 20  # percieved fish dispersion
 PDF_KS = 20  # spot of interest dispersion
 
 PDF_KWB = 3
-PDF_KWB = 1
 
 # Weights
 PDF_ALPHA_0 = 17.5 # weight of the perceived fish during basic-swimming

@@ -50,6 +50,23 @@ An example of an orientation PDF can be seen on the following image which contai
 <img src="code/fish_sim/orientation_pdf.png" width="650"/>
 </div>
 
+## Interactive simulation
+The interactive simulation is located in the `code/simulation` directory.
+
+Running the `sim.py` script will start the simulation, which contains 10 fish and two spots of interest in the bottom left and top right corners.
+
+The interactive simulation supports the following features:
+- Add fish by clicking the `+1 Fish` button,
+- remove fish by clicking the `-1 Fish` button,
+- add spot by clicking the `+1 Spot` button,
+- remove spot by clicking the `-1 Spot` button,
+- move fish by dragging and dropping them, enabled by toggling the `Move Fish` button, or pressing the `F` key on the keyboard,
+- the last clicked / dragged fish will be selected and its orientation PDF will be shown in the circle located at the top right corner as a polar graph, to deselect a fish click anywhere inside the tank while having the `Move Fish` button enabled,
+- move spots by dragging and dropping them, enabled by toggling the `Move Spots` button, or pressing the `S` key on the keyboard,
+- draw walls by clicking and dragging inside the tank, enabled by toggling the `Draw Walls button`, or pressing the `D` key on the keyboard,
+- clear drawn walls by clicking the `Clear Walls` button or pressing the `C` key on the keyboard,
+- save drawn walls to `current_tank.png` by pressing the `I` key on the keyboard (to load the drawn tank rename the file to `tank.png`).
+
 ## Results
 We ran 3 hour long simulations for 4 different environments, which we then compared to real life recorded data of real fish (can be found in `source_paper/Zebrafish_Positions_data`):
 - Homogeneous environment with 1 fish
