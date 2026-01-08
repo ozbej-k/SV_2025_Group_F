@@ -50,6 +50,15 @@ An example of an orientation PDF can be seen on the following image which contai
 <img src="code/fish_sim/orientation_pdf.png" width="650"/>
 </div>
 
+The table below summarizes the parameter configurations tested across experiments and highlights which parameters yielded the best outcomes. The parameters alpha and beta weight the influence of social interactions (other fish) and environmental cues (spots of interest), respectively, in the composite orientation probability density function.
+
+| num fish | num spots | alpha_0 | alpha_w | beta_0 | beta_w |
+|----------|-----------|---------|---------|--------|--------|
+| 1        | 0         | /       | /       | /      | /      |
+| 10       | 0         | 7       | 2       | /      | /      |
+| 1        | 2         | /       | /       | 1      | 0.5     |
+| 10       | 2         | 9       | 2       | 1      | 0.5    |
+
 ## Interactive simulation
 The interactive simulation is located in the `code/simulation` directory.
 
@@ -96,3 +105,4 @@ Our next step will be to extend the model to allow for non-square environments a
 [1] <a href="https://royalsocietypublishing.org/doi/10.1098/rsos.150473">
 Collignon, et al. 2016. *A stochastic vision-based model inspired by zebrafish collective behaviour in heterogeneous environments.*
 </a>
+
