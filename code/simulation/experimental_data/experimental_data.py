@@ -77,6 +77,26 @@ def get_speed_pdf(df : pd.DataFrame, homogeneous=True):
         return inside_counts, outside_counts, bins
 
 if __name__ == "__main__":
+    # # df_real = get_positions("experimental_data/Zebrafish_Positions_data/Heterogeneous_1AB/*07*")
+    # df_real = pd.read_csv("simulations/Heterogeneous_1AB1h.csv")
+    # # df_real = df_real[df_real["fish_id"] == "10"]
+    # # df_real = df_real[df_real["time"] <= 600]    
+    # df_real["x"] +=  0.6
+    # df_real["y"] +=  0.6
+    # hist_real = plot_presence_probability(df_real, bins=(30, 30), tank_size=(1.2, 1.2), cmap='Blues')
+    # # figure out how diff they are
+    # # diff(real, real) should be 0
+    # plt.ylim(0, 1.2)
+    # plt.xlim(0, 1.2)
+    # plt.axis("equal")
+    # plt.show()
+    # for fish_id, group in df_real.groupby("fish_id"):
+    #     plt.plot(group["x"], group["y"])
+    # plt.show()
+    # print(df_real)
+    # exit()
+
+
     df_real = get_positions("Zebrafish_Positions_data/Heterogeneous_10AB/*01*")
     df_sim = pd.read_csv("../simulations/Homogeneous_1AB_fast.csv")
     df_sim["x"] +=  0.6

@@ -23,25 +23,23 @@ def f0_wall(theta, mu_w): # fish following walls
     weights = np.exp(config.PDF_KWB * np.cos(mu_w))
     return f_component(theta, weights, np.sum(weights), mu_w, config.PDF_KW)
 
-def total_f(theta, near_wall, mu_w, A_f, A_s, mu_f, mu_s): # full PDF
+def total_f(theta, near_wall, under_spot, mu_w, A_f, A_s, mu_f, mu_s): # full PDF
     f0 = f0_forward
-    alpha = config.PDF_ALPHA_0
-    beta = config.PDF_BETA_0
+    sees_both = (len(A_f) > 0 and len(A_s) > 0)
+    alpha = config.PDF_ALPHA_0B if sees_both else config.PDF_ALPHA_0
+    beta = config.PDF_BETA_0B if sees_both else config.PDF_BETA_0
     if near_wall:
         f0 = f0_wall
-        alpha = config.PDF_ALPHA_W
-        beta = config.PDF_BETA_W
-    
-    if len(A_f) > 0 and len(A_s) > 0:
-        alpha *= config.PDF_WF
-        beta *= config.PDF_WS
+        alpha = config.PDF_ALPHA_WB if sees_both else config.PDF_ALPHA_W
+        beta = config.PDF_BETA_WB if sees_both else config.PDF_BETA_W
 
+    # print(alpha, beta)
     AT_f = np.sum(A_f)
     AT_s = np.sum(A_s)
 
     f0_pdf = f0(theta, mu_w)
     fF_pdf = f_component(theta, A_f, AT_f, mu_f, config.PDF_KF)
-    fS_pdf = f_component(theta, A_s, AT_s, mu_s, config.PDF_KS)
+    fS_pdf = f_component(theta, A_s, AT_s, mu_s, config.PDF_KS_S if under_spot else config.PDF_KS_0)
     
     top = f0_pdf + alpha * AT_f * fF_pdf + beta * AT_s * fS_pdf
     bottom = 1 + alpha * AT_f + beta * AT_s

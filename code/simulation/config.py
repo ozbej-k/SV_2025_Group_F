@@ -34,17 +34,18 @@ PDF_DW = 0.05  # meters
 PDF_K0 = 6.3 # basic-swimming dispersion
 PDF_KW = 20  # wall-following dispersion
 PDF_KF = 20  # percieved fish dispersion
-PDF_KS = 20  # spot of interest dispersion
+PDF_KS_0 = 10  # spot of interest dispersion when outside spot
+PDF_KS_S = 0.5   # spot of interest dispersion when under spot 
 
 PDF_KWB = 3
-PDF_KWB = 1
 
 # Weights
-PDF_ALPHA_0 = 17.5 # weight of the perceived fish during basic-swimming
-PDF_ALPHA_W = 5    # weight of the perceived fish during wall-following
-PDF_BETA_0 = 0.15  # weight of the perceived spots during basic-swimming
-PDF_BETA_W = 0.01  # weight of the perceived spots during wall-following
+PDF_ALPHA_0 = 7    # weight of the perceived fish during basic-swimming
+PDF_ALPHA_W = 2    # weight of the perceived fish during wall-following
+PDF_BETA_0 = 0.25   # weight of the perceived spots during basic-swimming
+PDF_BETA_W = 0.125  # weight of the perceived spots during wall-following
 
-# Factors for weight
-PDF_WF = 1/2  # factor of weight for alpha_0 and alpha_w when fish and spots are present
-PDF_WS = 1/9  # factor of weight for beta_0 and beta_w when fish and spots are present
+PDF_ALPHA_0B = 9    # weight of the perceived fish during basic-swimming when fish and spots are present
+PDF_ALPHA_WB = 2    # weight of the perceived fish during wall-following when fish and spots are present
+PDF_BETA_0B = 0.25   # weight of the perceived spots during basic-swimming when fish and spots are present
+PDF_BETA_WB = 0.125  # weight of the perceived spots during wall-following when fish and spots are present

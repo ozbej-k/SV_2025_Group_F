@@ -27,7 +27,7 @@ def get_positions(path):
     dfs = [get_pos(f, fi) for fi, f in enumerate(files)]
     return pd.concat(dfs, ignore_index=True)
 
-def plot_presence_probability(ax, df, bins=(30, 30), tank_pos=(0, 0), tank_size=(1.2, 1.2), cmap='Blues'):
+def plot_presence_probability(ax, df, bins=(30, 30), tank_pos=(0, 0), tank_size=(1.2, 1.2), cmap='Oranges'):
     xs = df['x'].to_numpy()
     ys = df['y'].to_numpy()
 
@@ -42,29 +42,34 @@ def plot_presence_probability(ax, df, bins=(30, 30), tank_pos=(0, 0), tank_size=
     H, _, _ = np.histogram2d(xs, ys, bins=bins, range=[[xmin, xmax], [ymin, ymax]])
     H = H / len(xs)
 
-    img = ax.imshow(H.T, origin='upper', extent=(xmin, xmax, ymin, ymax), cmap=cmap, aspect='auto', vmax=0.003)
+    img = ax.imshow(H.T, origin='upper', extent=(xmin, xmax, ymin, ymax), cmap=cmap, aspect='equal', vmax=0.003)
     return img
 
-# ## 3h => i forgot that one fish_loop is 1/3th of a second, so its actually 36000/3 seconds ~ 3h, df["time"] should be divided by 3
-# # name = "Homogeneous_1AB_3h"
-# # name = "Homogeneous_10AB_3h"
-# name = "Heterogeneous_10AB_3h"
-# # name = "Heterogeneous_1AB_3h"
+for name in ["Homogeneous_1AB","Homogeneous_10AB","Heterogeneous_1AB","Heterogeneous_10AB"]:
+    fig, ax = plt.subplots()
+    df = pd.read_csv(f"simulations/{name}.csv")
+    plot_presence_probability(ax, df, tank_pos=(-0.6, -0.6), tank_size=(1.2, 1.2))
+    plt.savefig(f"simulations/sim_{name}.png", dpi=300, bbox_inches="tight")
+    plt.close()
+    fig, ax = plt.subplots()
+    df = get_positions(f"experimental_data/Zebrafish_Positions_data/{name}/*")
+    df["x"] -= 0.6
+    df["y"] -= 0.6
+    plot_presence_probability(ax, df, tank_pos=(-0.6, -0.6), tank_size=(1.2, 1.2), cmap="Blues")
+    fig.savefig(f"simulations/exp_{name}.png", dpi=300, bbox_inches="tight")
+    plt.close(fig)
 
-# df = pd.read_csv(f"simulations/{name}.csv")
-# plot_occupancy_map(df, tank_pos=(-0.6, -0.6), tank_size=(1.2, 1.2))
+for name in ["Drawn_1AB","Drawn_10AB"]:
+    fig, ax = plt.subplots()
+    df = pd.read_csv(f"simulations/{name}.csv")
+    plot_presence_probability(ax, df, bins=(40, 30), tank_pos=(-0.8, -0.6), tank_size=(1.6, 1.2))
+    plt.savefig(f"simulations/{name}.png", dpi=300, bbox_inches="tight")
+    plt.close()
 
-# plt.savefig(f"simulations/{name}.png", dpi=300, bbox_inches="tight")
-# plt.show()
-
-# sim_homogeneous_1AB_df = pd.read_csv(f"simulations/Homogeneous_1AB_3h.csv")
-# sim_homogeneous_10AB_df = pd.read_csv(f"simulations/Homogeneous_10AB_3h.csv")
-# sim_heterogeneous_1AB_df = pd.read_csv(f"simulations/Heterogeneous_1AB_3h.csv")
-# sim_heterogeneous_10AB_df = pd.read_csv(f"simulations/Heterogeneous_10AB_3h.csv")
-sim_homogeneous_1AB_df = pd.read_csv(f"simulations/Homogeneous_1AB_fast.csv")
-sim_homogeneous_10AB_df = pd.read_csv(f"simulations/Homogeneous_10AB_fast.csv")
-sim_heterogeneous_1AB_df = pd.read_csv(f"simulations/Heterogeneous_1AB_fast.csv")
-sim_heterogeneous_10AB_df = pd.read_csv(f"simulations/Heterogeneous_10AB_fast.csv")
+sim_homogeneous_1AB_df = pd.read_csv(f"simulations/Homogeneous_1AB.csv")
+sim_homogeneous_10AB_df = pd.read_csv(f"simulations/Homogeneous_10AB.csv")
+sim_heterogeneous_1AB_df = pd.read_csv(f"simulations/Heterogeneous_1AB.csv")
+sim_heterogeneous_10AB_df = pd.read_csv(f"simulations/Heterogeneous_10AB.csv")
 
 sim_dfs = [
     sim_homogeneous_1AB_df,
@@ -89,6 +94,14 @@ for df in exp_dfs:
     df["x"] -= 0.6
     df["y"] -= 0.6
 
+sim_drawn_1AB_df = pd.read_csv(f"simulations/Drawn_1AB.csv")
+sim_drawn_10AB_df = pd.read_csv(f"simulations/Drawn_10AB.csv")
+
+sim_drawn_dfs = [
+    sim_drawn_1AB_df,
+    sim_drawn_10AB_df
+]
+
 titles = ["(a)", "(b)", "(c)", "(d)"]
 
 cmaps = ["Blues", "Oranges", "Blues", "Oranges"]
@@ -111,6 +124,37 @@ for ax, df, title, cmap in zip(axes.ravel(), [exp_dfs[2], sim_dfs[2], exp_dfs[3]
     ax.set_title(title)
 cbar = fig.colorbar(img, ax=axes.ravel().tolist(), shrink=0.75)
 plt.savefig("simulations/hetero_presence_probability.png", dpi=300, bbox_inches="tight")
+plt.show()
+
+import cv2
+walls = cv2.imread('test_tank.png')
+walls = cv2.flip(walls, 0)
+walls = cv2.cvtColor(walls, cv2.COLOR_BGR2GRAY)
+rgba = np.zeros((walls.shape[0], walls.shape[1], 4), dtype=np.float32)
+threshold = 1  # adjust if needed
+mask = walls >= threshold
+rgba[mask, :3] = 0
+rgba[mask, 3] = 1
+
+tank_pos=(-0.8, -0.6)
+tank_size=(1.6, 1.2)
+x0 = - tank_size[0]/2
+x1 = + tank_size[0]/2
+y0 = - tank_size[1]/2
+y1 = + tank_size[1]/2
+
+fig, axes = plt.subplots(2, 1, figsize=(5, 8))
+for ax, df, title, cmap in zip(axes.ravel(), [sim_drawn_dfs[0], sim_drawn_dfs[1]], titles[:2], ["Oranges", "Oranges"]):
+    df["y"] = -df["y"]
+    img = plot_presence_probability(ax, df, bins=(40, 30), tank_pos=tank_pos, tank_size=tank_size, cmap=cmap)
+    ax.imshow(rgba, extent=(x0, x1, y0, y1))
+    circle1 = patches.Circle((-0.15, 0.4), 0.1, edgecolor='red', facecolor='none', linewidth=2)
+    circle2 = patches.Circle((-0.55, -0.4), 0.1, edgecolor='red', facecolor='none', linewidth=2)
+    ax.add_patch(circle1)
+    ax.add_patch(circle2)
+    ax.set_title(title)
+cbar = fig.colorbar(img, ax=axes.ravel().tolist(), shrink=0.75)
+plt.savefig("simulations/drawn_presence_probability.png", dpi=300, bbox_inches="tight")
 plt.show()
 
 

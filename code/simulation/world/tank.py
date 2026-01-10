@@ -4,6 +4,8 @@ from ui_utils import world_to_grid
 from PIL import Image
 
 class Tank:
+    RAYCAST_N_RAYS = 8     # Number of rays around the fish
+    RAYCAST_STEP_FRAC = 0.5    # Step fraction of cell size
     def __init__(self, width=1.20, height=1.20, xmin=0.0, ymin=0.0, origin_at_center=False):
         self.width = width
         self.height = height
@@ -125,7 +127,7 @@ class Tank:
                 return True
         return False
     
-    def tangent_wall_directions(self, pos):
+    '''def tangent_wall_directions(self, pos):
         """Find nearest wall (including drawn walls) and return tangent directions"""
         #check drawn walls
         if self.wall_grid is not None:
@@ -227,7 +229,54 @@ class Tank:
         direction = eigvecs[:, np.argmax(eigvals)]
         tangent = np.arctan2(direction[1], direction[0])
 
-        return tangent % (2 * np.pi)
+        return tangent % (2 * np.pi)'''
+
+    def tangent_wall_directions(self, pos, orientation):
+        """
+        Find all nearby walls (drawn walls + tank boundaries) and return their tangent directions.
+
+        Returns:
+            distances: list of distances to wall segments
+            mu_w1_list: list of first tangent angles for each wall segment
+            mu_w2_list: list of second tangent angles for each wall segment
+        """
+        distances = []
+        mu_w1_list = []
+        mu_w2_list = []
+
+        # 1 Drawn walls
+        drawn_wall_segments = self._raycast_drawn_wall_tangents(pos, orientation)
+        for s in drawn_wall_segments:
+            if s["distance"] <= config.PDF_DW:
+                distances.append(s["distance"])
+                mu_w1_list.append(s["mu_w1"])
+                mu_w2_list.append(s["mu_w2"])
+
+        # 2 Tank boundaries
+        tank_m = np.array([[self.xmin, self.ymin], [self.xmax, self.ymax]])
+        diff = np.abs(np.array([pos - tank_m[0], tank_m[1] - pos]))
+        nearest = diff.min(0)
+        d_boundary = diff.min()
+
+        if d_boundary < config.PDF_DW:
+            # Determine tangent directions for boundaries
+            if np.abs(nearest[0] - nearest[1]) < config.PDF_DW:  # corner
+                ix, iy = np.argmin(diff[:,0]), np.argmin(diff[:,1])
+                horiz = 0 if ix == 0 else np.pi
+                vert  = 3*np.pi/2 if iy == 1 else np.pi/2
+                distances.append(d_boundary)
+                mu_w1_list.append(vert)
+                mu_w2_list.append(horiz)
+            elif nearest[0] < nearest[1]:  # left/right wall
+                distances.append(d_boundary)
+                mu_w1_list.append(np.pi/2)
+                mu_w2_list.append(3*np.pi/2)
+            else:  # top/bottom wall
+                distances.append(d_boundary)
+                mu_w1_list.append(0)
+                mu_w2_list.append(np.pi)
+
+        return distances, mu_w1_list, mu_w2_list
 
     def is_wall_near(self, x, y, buffer=0.05):
         """
@@ -238,3 +287,119 @@ class Tank:
                 if self.is_wall_at(x + dx, y + dy):
                     return True
         return False
+    
+    def _raycast_drawn_wall_tangents(self, pos, orientation, max_dist=(config.PDF_DW * 2)):
+        """
+        Cast rays around the fish to detect drawn-wall segments.
+        Returns a list of dicts: {"mu_w1", "mu_w2", "distance"}.
+        """
+        if self.wall_grid is None:
+            return []
+
+        cell_size = self.width / self.grid_width
+        step = cell_size * self.RAYCAST_STEP_FRAC
+        angles = np.linspace(-np.pi, np.pi, self.RAYCAST_N_RAYS, endpoint=False) + orientation
+        hits = []
+
+        # 1 Cast rays
+        for theta in angles:
+            hit_dist = None
+            num_steps = int(max_dist / step) + 1
+            for i in range(num_steps):
+                px = pos[0] + i * step * np.cos(theta)
+                py = pos[1] + i * step * np.sin(theta)
+                if self.is_wall_at(px, py):
+                    hit_dist = i * step
+                    break
+            hits.append(hit_dist)
+
+        
+
+        # 2 Identify wall directions
+        wall_segments = []
+        n = len(hits)
+
+        if hits[0] is not None and hits[-1] is not None:
+            # Find where the initial segment ends
+            i = 0
+            while i < n and hits[i] is not None:
+                i += 1
+            end_of_start = i - 1
+            
+            # Find where the final segment begins
+            j = n - 1
+            while j >= 0 and hits[j] is not None:
+                j -= 1
+            start_of_end = j + 1
+            
+            # If they're actually separate segments (there's a gap between)
+            if end_of_start < start_of_end:
+                # Merge into one wrap-around segment
+                distances = []
+                for k in range(start_of_end, n):
+                    distances.append(hits[k])
+                for k in range(0, end_of_start + 1):
+                    distances.append(hits[k])
+                
+                mu_w1 = angles[start_of_end - 1]
+                mu_w2 = angles[(end_of_start + 1) % n]
+                
+                wall_segments.append({
+                    "mu_w1": mu_w1,
+                    "mu_w2": mu_w2,
+                    "distance": min(distances)
+                })
+                
+                # Process the middle part
+                i = end_of_start + 1
+                while i < start_of_end:
+                    if hits[i] is not None:
+                        start = i
+                        distances = []
+                        while i < start_of_end and hits[i] is not None:
+                            distances.append(hits[i])
+                            i += 1
+                        end = i - 1
+                        
+                        mu_w1 = angles[start - 1]
+                        mu_w2 = angles[(end + 1) % n]
+                        
+                        wall_segments.append({
+                            "mu_w1": mu_w1,
+                            "mu_w2": mu_w2,
+                            "distance": min(distances)
+                        })
+                    else:
+                        i += 1
+            else:
+                # All hits - full circle
+                wall_segments.append({
+                    "mu_w1": angles[-1],
+                    "mu_w2": angles[0],
+                    "distance": min(hits)
+                })
+        else:
+            i = 0
+            while i < n:
+                if hits[i] is not None:
+                    start = i
+                    distances = []
+                    while hits[i % n] is not None:
+                        distances.append(hits[i % n])
+                        i += 1
+                        if i - start >= n:
+                            break
+                    end = (i - 1) % n
+                    # Compute tangent angles
+                    mu_w1 = angles[start-1] if start > 0 else angles[-1]
+                    mu_w2 = angles[(end+1) % n]
+                    wall_segments.append({
+                        "mu_w1": mu_w1,  
+                        "mu_w2": mu_w2,
+                        "distance": min(distances)
+                    })
+                else:
+                    i += 1
+
+        return wall_segments
+    

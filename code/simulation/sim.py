@@ -13,17 +13,21 @@ from experimental_data.speed_PDF import SPEED_PDF_MAP
 from ui_utils import *
 
 def calculate_next_fish_state(tank: Tank, fish: Fish, perception, time_step):
-    d = perception["wall_state"]["distance"]  # distance from wall
-    mu_w = np.array([perception["wall_state"]["mu_w1"], perception["wall_state"]["mu_w2"]])  # wall tangents
+    #d = perception["wall_state"]["distance"]  # distance from wall
+    #mu_w = np.array([perception["wall_state"]["mu_w1"], perception["wall_state"]["mu_w2"]])  # wall tangents
+    d = perception["wall_state"]["distance"]
+    mu_w_list = perception["wall_state"]["mu_w1"] + perception["wall_state"]["mu_w2"]
+    mu_w = np.array([mu for mu in mu_w_list if mu is not None])
     A_f = np.array([fish["A"] for fish in perception["fish"]]) # sizes of percieved fishies
     mu_f = np.array([fish["mu"] for fish in perception["fish"]])  # directions of percieved fishies
     A_s = np.array([fish["A"] for fish in perception["spots"]])  # sizes of percieved spots
     mu_s = np.array([fish["mu"] for fish in perception["spots"]])  # directions of percieved spots
 
-    near_wall = d < config.PDF_DW
-    pdf_values = total_f(THETA_GRID, near_wall, mu_w, A_f, A_s, mu_f, mu_s)
-    sees_spots = A_s.size != 0
+    #near_wall = d < config.PDF_DW
+    near_wall = d < config.PDF_DW if isinstance(d, float) else (len(d) > 0 and min(d) < config.PDF_DW)
     under_spot = perception["under_spot"]
+    pdf_values = total_f(THETA_GRID, near_wall, under_spot, mu_w, A_f, A_s, mu_f, mu_s)
+    sees_spots = A_s.size != 0
     sees_fish = A_f.size != 0
     speed_bins, speed_pdf = SPEED_PDF_MAP[(sees_fish, sees_spots, under_spot)]
     # print("sees_fish", sees_fish, "sees_spots", sees_spots, "under_spot", under_spot)
@@ -38,9 +42,26 @@ def calculate_next_fish_state(tank: Tank, fish: Fish, perception, time_step):
     intended_position = fish.position + new_speed_vec * time_step
 
     # wall handling
-    if tank.ray_intersects_wall(fish.position, intended_position) or tank.is_wall_near(*intended_position, buffer=0.02):
-        intended_position = fish.position.copy()
-        new_speed_vec = np.array([0.0, 0.0])
+    v = intended_position - fish.position
+    if not tank.ray_intersects_wall(fish.position, intended_position) \
+        and not tank.is_wall_near(*intended_position, buffer=config.FISH_LENGTH/2):
+        new_speed_vec = v
+    else:
+        # Try sliding along X
+        x_slide = np.array([fish.position[0] + v[0], fish.position[1]])
+        if not tank.is_wall_near(*x_slide, buffer=config.FISH_LENGTH/2):
+            intended_position = x_slide
+            new_speed_vec = x_slide - fish.position
+        else:
+            # Try sliding along Y
+            y_slide = np.array([fish.position[0], fish.position[1] + v[1]])
+            if not tank.is_wall_near(*y_slide, buffer=config.FISH_LENGTH/2):
+                intended_position = y_slide
+                new_speed_vec = y_slide - fish.position
+            else:
+                # Fully blocked
+                intended_position = fish.position.copy()
+                new_speed_vec = np.zeros(2)
 
     # Update fish state
     fish.next_position = np.clip(intended_position, 
@@ -89,9 +110,9 @@ def run_and_save_sim(tank, fishies, spots, duration_s, save_path=None):
     if save_path is None:
         for fish_id, group in positions.groupby("fish_id"):
             plt.plot(group["x"], group["y"])
-
         plt.show()
     else:
+        print(f"saved to {save_path}.csv")
         positions.to_csv(f"{save_path}.csv", index=False)
 
 tank = Tank(config.TANK_WIDTH, config.TANK_HEIGHT, origin_at_center=True)
@@ -108,14 +129,25 @@ spots = [
     Spot(-0.35, -0.35, config.SPOT_RADIUS, config.SPOT_HEIGHT),
 ]
 
-prev_x, prev_y = None, None  
+selected_fish = fishies[0]
+prev_x, prev_y = None, None
 tank.load_tank("test_tank.png")
+spots = [
+    Spot(-0.15, 0.4, config.SPOT_RADIUS, config.SPOT_HEIGHT),
+    Spot(-0.55, -0.4, config.SPOT_RADIUS, config.SPOT_HEIGHT),
+]
 
 # ---- fast simulation ----
 
 # run_and_save_sim(tank, fishies, spots, 600, None)
-# run_and_save_sim(tank, fishies, spots, 600, "simulations/Heterogeneous_10AB")
-# exit()
+# run_and_save_sim(tank, fishies, spots, 60*60*10, "simulations/Homogeneous_1AB")
+# run_and_save_sim(tank, fishies, spots, 60*60*10, "simulations/Homogeneous_10AB")
+# run_and_save_sim(tank, fishies, spots, 60*60*10, "simulations/Heterogeneous_1AB")
+# run_and_save_sim(tank, fishies, spots, 60*60*10, "simulations/Heterogeneous_10AB")
+# run_and_save_sim(tank, fishies, spots, 600, "simulations/Drawn_1AB")
+# run_and_save_sim(tank, fishies, spots, 60*60*1, "simulations/Drawn_1AB")
+run_and_save_sim(tank, fishies, spots, 60*60*1, "simulations/Drawn_10AB")
+exit()
 
 # ---- interactive simulation ----
 

@@ -78,7 +78,7 @@ def perceive(fish: Fish, fishies: List[Fish], spots: List[Spot], tank: Tank):
         })
 
     # Wall perception
-    d_nearest, mu_w1_world, mu_w2_world = tank.tangent_wall_directions(fish.position)
+    '''d_nearest, mu_w1_world, mu_w2_world = tank.tangent_wall_directions(fish.position)
     if mu_w1_world is None or mu_w2_world is None:
         mu_w1 = None
         mu_w2 = None
@@ -90,5 +90,17 @@ def perceive(fish: Fish, fishies: List[Fish], spots: List[Spot], tank: Tank):
         "mu_w1": mu_w1,
         "mu_w2": mu_w2,
         "distance": d_nearest,
+    }'''
+    d_list, mu_w1_list, mu_w2_list = tank.tangent_wall_directions(fish.position, fish.orientation)
+
+    # Convert wall tangents to fish-relative coordinates
+    mu_w1_relative = [(mu - fish.orientation + np.pi) % (2 * np.pi) - np.pi for mu in mu_w1_list]
+    mu_w2_relative = [(mu - fish.orientation + np.pi) % (2 * np.pi) - np.pi for mu in mu_w2_list]
+
+    # Store in perception
+    perception["wall_state"] = {
+        "mu_w1": mu_w1_relative,
+        "mu_w2": mu_w2_relative,
+        "distance": d_list,   
     }
     return perception

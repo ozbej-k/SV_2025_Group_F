@@ -197,8 +197,8 @@ def draw_orientation_pdf(screen, selected_fish_orientation_pdf, THETA_GRID, sele
     if selected_fish is not None and selected_fish_orientation_pdf is not None:
         cutoff = 0.8
         selected_fish_orientation_pdf[selected_fish_orientation_pdf > cutoff] = cutoff
-        x = (0.22 + selected_fish_orientation_pdf) * np.cos(THETA_GRID + selected_fish.next_orientation)
-        y = (0.22 + selected_fish_orientation_pdf) * np.sin(THETA_GRID + selected_fish.next_orientation)
+        x = (0.22 + selected_fish_orientation_pdf) * np.cos(THETA_GRID + selected_fish.prev_orientation)
+        y = (0.22 + selected_fish_orientation_pdf) * np.sin(THETA_GRID + selected_fish.prev_orientation)
 
         # convert to screen
         x = middle[0] + x * 0.15 * config.SCALE
