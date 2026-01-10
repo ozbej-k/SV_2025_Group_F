@@ -146,8 +146,8 @@ spots = [
 # run_and_save_sim(tank, fishies, spots, 60*60*10, "simulations/Heterogeneous_10AB")
 # run_and_save_sim(tank, fishies, spots, 600, "simulations/Drawn_1AB")
 # run_and_save_sim(tank, fishies, spots, 60*60*1, "simulations/Drawn_1AB")
-run_and_save_sim(tank, fishies, spots, 60*60*1, "simulations/Drawn_10AB")
-exit()
+# run_and_save_sim(tank, fishies, spots, 60*60*1, "simulations/Drawn_10AB")
+# exit()
 
 # ---- interactive simulation ----
 
