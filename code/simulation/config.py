@@ -37,7 +37,7 @@ PDF_KF = 20  # percieved fish dispersion
 PDF_KS_0 = 10  # spot of interest dispersion when outside spot
 PDF_KS_S = 0.5   # spot of interest dispersion when under spot 
 
-PDF_KWB = 3
+PDF_KWB = 3 # forward facing amplification parameter
 
 # Weights
 PDF_ALPHA_0 = 7    # weight of the perceived fish during basic-swimming

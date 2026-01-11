@@ -48,23 +48,47 @@ def plot_presence_probability(ax, df, bins=(30, 30), tank_pos=(0, 0), tank_size=
 for name in ["Homogeneous_1AB","Homogeneous_10AB","Heterogeneous_1AB","Heterogeneous_10AB"]:
     fig, ax = plt.subplots()
     df = pd.read_csv(f"simulations/{name}.csv")
-    plot_presence_probability(ax, df, tank_pos=(-0.6, -0.6), tank_size=(1.2, 1.2))
-    plt.savefig(f"simulations/sim_{name}.png", dpi=300, bbox_inches="tight")
-    plt.close()
+
+    mappable = plot_presence_probability(
+        ax, df, tank_pos=(-0.6, -0.6), tank_size=(1.2, 1.2)
+    )
+    fig.colorbar(mappable, ax=ax, label="Presence probability")
+
+    fig.savefig(f"simulations/sim_{name}.png", dpi=300, bbox_inches="tight")
+    plt.close(fig)
+
     fig, ax = plt.subplots()
     df = get_positions(f"experimental_data/Zebrafish_Positions_data/{name}/*")
     df["x"] -= 0.6
     df["y"] -= 0.6
-    plot_presence_probability(ax, df, tank_pos=(-0.6, -0.6), tank_size=(1.2, 1.2), cmap="Blues")
+
+    mappable = plot_presence_probability(
+        ax, df,
+        tank_pos=(-0.6, -0.6),
+        tank_size=(1.2, 1.2),
+        cmap="Blues"
+    )
+    fig.colorbar(mappable, ax=ax)
+
     fig.savefig(f"simulations/exp_{name}.png", dpi=300, bbox_inches="tight")
     plt.close(fig)
+
 
 for name in ["Drawn_1AB","Drawn_10AB"]:
     fig, ax = plt.subplots()
     df = pd.read_csv(f"simulations/{name}.csv")
-    plot_presence_probability(ax, df, bins=(40, 30), tank_pos=(-0.8, -0.6), tank_size=(1.6, 1.2))
-    plt.savefig(f"simulations/{name}.png", dpi=300, bbox_inches="tight")
-    plt.close()
+
+    mappable = plot_presence_probability(
+        ax, df,
+        bins=(40, 30),
+        tank_pos=(-0.8, -0.6),
+        tank_size=(1.6, 1.2)
+    )
+    fig.colorbar(mappable, ax=ax)
+
+    fig.savefig(f"simulations/{name}.png", dpi=300, bbox_inches="tight")
+    plt.close(fig)
+
 
 sim_homogeneous_1AB_df = pd.read_csv(f"simulations/Homogeneous_1AB.csv")
 sim_homogeneous_10AB_df = pd.read_csv(f"simulations/Homogeneous_10AB.csv")

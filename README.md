@@ -7,11 +7,11 @@
 - Urban Vesel | [ultraviolet99](https://github.com/ultraviolet99)
 
 ## Project description
-The study used as the starting point for this assignment was [Collignon et al. 2016](#collignon2016). The paper presents a model describing the visual sensory system of zebrafish, introduces a stochastic process based on a probability distribution function to model fish movement depending on their surroundings. The model is then compared to experimental data acquired by recording real life zebrafish and their changes in behaviour when introducing points of interest into the environment. Our goal is to implement the model, validate it by comparing it to the real life experimental data, and then possibly extend it by adding interactive control over positions of points of interest and differently shaped environments to see how the fish react.
+The study used as the starting point for this assignment was [Collignon et al. 2016](#collignon2016). The paper presents a model describing the visual sensory system of zebrafish, introduces a stochastic process based on a probability distribution function to model fish movement depending on their surroundings. The model is then compared to experimental data acquired by recording real life zebrafish and their changes in behaviour when introducing spots of interest into the environment. Our goal is to implement the model, validate it by comparing it to the real life experimental data, and then extend it by adding interactive control over fish and of spots of interest and differently shaped environments to see how the fish react.
 
 ## Project plan
 ### [Milestone: First report - 16. 11. 2025](https://github.com/ozbej-k/Skupinsko-Vedenje-25-26-GroupF/milestone/1):
-- Explore existing vision based models and models which explore points of interest
+- Explore existing vision based models and models which explore spots of interest
 - Set a strategy for reproducing the results in the source paper
 - Discuss and plan implementation (select tools and collect any needed data)
 
@@ -30,7 +30,7 @@ The study used as the starting point for this assignment was [Collignon et al. 2
 ## Implementation
 The implementation of the stochastic vision-based model described in the the source paper can be found in `code/simulation`. The model has been extended to run in real-time with a running visualisation of the fish in the environment. 
 
-The model supports bounded homogeneous and heterogeneous environments with spots of interest, where fish percieve their surroundings and gather information based on a 270° field of view and give each percieved stimuli a weight depending on how large they appear on in their field of view.
+The model supports bounded homogeneous and heterogeneous environments with spots of interest, where fish percieve their surroundings and gather information based on a 270° field of view and give each perceived stimuli a weight depending on how large they appear on in their field of view.
 
 A screenshot of the simulation running in a heterogeneous environment with 10 fish and 2 spots of interest can be seen on the following image.
 <div align="center">
@@ -41,8 +41,8 @@ The model defines an orientation and speed probability density function (PDF) wh
 
 The full orientation PDF $f$ is a composite of the following distributions:
 - $f_0$ - basic-swimming or wall-following behaviour if close to wall,
-- $f_f$ - influence of other percieved fish,
-- $f_s$ - influence of percieved spots of interest.
+- $f_f$ - influence of other perceived fish,
+- $f_s$ - influence of perceived spots of interest.
 
 An example of an orientation PDF can be seen on the following image which contains plots of the PDF in cartesian (left) and polar (right) coordinates, where how different stimuli influence the probability of the fish changing its orientation.
 
@@ -113,11 +113,11 @@ whose results can be seen in the image below:
 <img src="code/simulation/simulations/drawn_presence_probability.png" width="550"/>
 </div>
 
-## Co
+## Conclusion
 We successfully implemented the stochastic zebrafish behaviour model presented by Collignon et al. and reproduced presence probabilities for both homogeneous and heterogeneous environments, which closely match experimentally recorded data. We also developed an interactive simulation that allows control over fish and spots, and improved its performance by approximating the solid-angle calculations in the perception model using fitted functions.  
 The model was further extended to irregular environments, which can contain arbitrary wall configurations drawn directly within the interactive simulation. The resulting presence probability images, shown on Figure~\ref{drawn_presence}, clearly display fish navigating around the irregular wall structures.  
 
-Future work would focus on acquiring experimental zebrafish data in irregular environments to evaluate how well the model reproduces real fish behaviour in non square-walled environments.
+Future work would focus on adding more stimuli to the environment, such as food and acquiring experimental zebrafish data in irregular environments to evaluate how well the model reproduces real fish behaviour in non square-walled environments.
 
 
 ## References
