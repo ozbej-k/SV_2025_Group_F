@@ -109,7 +109,7 @@ cmaps = ["Blues", "Oranges", "Blues", "Oranges"]
 fig, axes = plt.subplots(2, 2, figsize=(10, 8))
 for ax, df, title, cmap in zip(axes.ravel(), [exp_dfs[0], sim_dfs[0], exp_dfs[1], sim_dfs[1]], titles, cmaps):
     img = plot_presence_probability(ax, df, tank_pos=(-0.6, -0.6), tank_size=(1.2, 1.2), cmap=cmap)
-    ax.set_title(title)
+    ax.set_title(title,loc="left")
 cbar = fig.colorbar(img, ax=axes.ravel().tolist(), shrink=0.75)
 plt.savefig("simulations/homo_presence_probability.png", dpi=300, bbox_inches="tight")
 plt.show()
@@ -121,7 +121,7 @@ for ax, df, title, cmap in zip(axes.ravel(), [exp_dfs[2], sim_dfs[2], exp_dfs[3]
     circle2 = patches.Circle((0.35, -0.35), 0.1, edgecolor='red', facecolor='none', linewidth=2)
     ax.add_patch(circle1)
     ax.add_patch(circle2)
-    ax.set_title(title)
+    ax.set_title(title,loc="left")
 cbar = fig.colorbar(img, ax=axes.ravel().tolist(), shrink=0.75)
 plt.savefig("simulations/hetero_presence_probability.png", dpi=300, bbox_inches="tight")
 plt.show()
@@ -143,7 +143,7 @@ x1 = + tank_size[0]/2
 y0 = - tank_size[1]/2
 y1 = + tank_size[1]/2
 
-fig, axes = plt.subplots(2, 1, figsize=(5, 8))
+fig, axes = plt.subplots(1, 2, figsize=(8, 4))
 for ax, df, title, cmap in zip(axes.ravel(), [sim_drawn_dfs[0], sim_drawn_dfs[1]], titles[:2], ["Oranges", "Oranges"]):
     df["y"] = -df["y"]
     img = plot_presence_probability(ax, df, bins=(40, 30), tank_pos=tank_pos, tank_size=tank_size, cmap=cmap)
@@ -152,7 +152,7 @@ for ax, df, title, cmap in zip(axes.ravel(), [sim_drawn_dfs[0], sim_drawn_dfs[1]
     circle2 = patches.Circle((-0.55, -0.4), 0.1, edgecolor='red', facecolor='none', linewidth=2)
     ax.add_patch(circle1)
     ax.add_patch(circle2)
-    ax.set_title(title)
+    ax.set_title(title,loc="left")
 cbar = fig.colorbar(img, ax=axes.ravel().tolist(), shrink=0.75)
 plt.savefig("simulations/drawn_presence_probability.png", dpi=300, bbox_inches="tight")
 plt.show()

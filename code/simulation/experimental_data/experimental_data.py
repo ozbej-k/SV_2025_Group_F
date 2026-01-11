@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import json
+from matplotlib.ticker import FuncFormatter
 
 def get_positions(path):
     def get_pos(path, id):
@@ -97,19 +98,19 @@ if __name__ == "__main__":
     # exit()
 
 
-    df_real = get_positions("Zebrafish_Positions_data/Heterogeneous_10AB/*01*")
-    df_sim = pd.read_csv("../simulations/Homogeneous_1AB_fast.csv")
-    df_sim["x"] +=  0.6
-    df_sim["y"] +=  0.6
-    hist_real = plot_presence_probability(df_real, bins=(30, 30), tank_size=(1.2, 1.2), cmap='Blues')
-    hist_sim = plot_presence_probability(df_sim, bins=(30, 30), tank_size=(1.2, 1.2), cmap='Blues')
-    # figure out how diff they are
-    # diff(real, real) should be 0
-    plt.ylim(0, 1.2)
-    plt.xlim(0, 1.2)
-    plt.axis("equal")
-    plt.show()
-    exit()
+    # df_real = get_positions("Zebrafish_Positions_data/Heterogeneous_10AB/*01*")
+    # df_sim = pd.read_csv("../simulations/Homogeneous_1AB_fast.csv")
+    # df_sim["x"] +=  0.6
+    # df_sim["y"] +=  0.6
+    # hist_real = plot_presence_probability(df_real, bins=(30, 30), tank_size=(1.2, 1.2), cmap='Blues')
+    # hist_sim = plot_presence_probability(df_sim, bins=(30, 30), tank_size=(1.2, 1.2), cmap='Blues')
+    # # figure out how diff they are
+    # # diff(real, real) should be 0
+    # plt.ylim(0, 1.2)
+    # plt.xlim(0, 1.2)
+    # plt.axis("equal")
+    # plt.show()
+    # exit()
 
 
     # ### ANIMATION with trail of last 3 positions ###
@@ -258,40 +259,103 @@ if __name__ == "__main__":
         }
     }
 
-    with open("speed_histograms.json", "w") as f:
-        json.dump(data, f, indent=4)
+    # with open("speed_histograms.json", "w") as f:
+    #     json.dump(data, f, indent=4)
 
-    plt.title("Homogeneous_1AB")
+    # plt.title("Homogeneous_1AB")
+    # counts, bins = homogeneous_1AB_counts, homogeneous_1AB_bins
+    # plt.bar(bins[:-1], counts, width=np.diff(bins), align="edge")
+    # plt.xlabel("Speed")
+    # plt.ylabel("Frequency")
+    # plt.show()
+
+    # plt.title("Homogeneous_10AB")
+    # counts, bins = homogeneous_10AB_counts, homogeneous_10AB_bins
+    # plt.bar(bins[:-1], counts, width=np.diff(bins), align="edge")
+    # plt.xlabel("Speed")
+    # plt.ylabel("Frequency")
+    # plt.show()
+
+    # plt.title("Heterogeneous_1AB")
+    # inside_counts, outside_counts, bins = heterogeneous_1AB_counts_inside, heterogeneous_1AB_counts_outside, heterogeneous_1AB_bins
+    # plt.bar(bins[:-1], outside_counts, width=np.diff(bins), align="edge", label="outside")
+    # plt.bar(bins[:-1], -inside_counts, width=np.diff(bins), align="edge", label="inside")
+    # plt.legend()
+    # plt.xlabel("Speed")
+    # plt.ylabel("Frequency")
+    # plt.show()
+
+    # plt.title("Heterogeneous_10AB")
+    # inside_counts, outside_counts, bins = heterogeneous_10AB_counts_inside, heterogeneous_10AB_counts_outside, heterogeneous_10AB_bins
+    # plt.bar(bins[:-1], outside_counts, width=np.diff(bins), align="edge", label="outside")
+    # plt.bar(bins[:-1], -inside_counts, width=np.diff(bins), align="edge", label="inside")
+    # plt.legend()
+    # plt.xlabel("Speed")
+    # plt.ylabel("Frequency")
+    # plt.show()
+
+    fig, axes = plt.subplots(2, 2, figsize=(10, 8))
+
     counts, bins = homogeneous_1AB_counts, homogeneous_1AB_bins
-    plt.bar(bins[:-1], counts, width=np.diff(bins), align="edge")
-    plt.xlabel("Speed")
-    plt.ylabel("Frequency")
-    plt.show()
+    axes[0, 0].bar(bins[:-1], counts, width=np.diff(bins), align="edge")
+    axes[0, 0].set_title("(a)",loc="left")
+    axes[0, 0].set_xlabel("Speed")
+    axes[0, 0].set_ylabel("Frequency")
 
-    plt.title("Homogeneous_10AB")
     counts, bins = homogeneous_10AB_counts, homogeneous_10AB_bins
-    plt.bar(bins[:-1], counts, width=np.diff(bins), align="edge")
-    plt.xlabel("Speed")
-    plt.ylabel("Frequency")
+    axes[0, 1].bar(bins[:-1], counts, width=np.diff(bins), align="edge")
+    axes[0, 1].set_title("(b)",loc="left")
+    axes[0, 1].set_xlabel("Speed")
+    axes[0, 1].set_ylabel("Frequency")
+
+    inside, outside, bins = (
+        heterogeneous_1AB_counts_inside,
+        heterogeneous_1AB_counts_outside,
+        heterogeneous_1AB_bins
+    )
+    axes[1, 0].bar(bins[:-1], outside, width=np.diff(bins),
+                align="edge", label="outside spot")
+    axes[1, 0].bar(bins[:-1], -inside, width=np.diff(bins),
+                align="edge", label="under spot")
+    axes[1, 0].legend()
+    axes[1, 0].set_title("(c)",loc="left")
+    axes[1, 0].set_xlabel("Speed")
+    axes[1, 0].set_ylabel("Frequency")
+
+    inside, outside, bins = (
+        heterogeneous_10AB_counts_inside,
+        heterogeneous_10AB_counts_outside,
+        heterogeneous_10AB_bins
+    )
+    axes[1, 1].bar(bins[:-1], outside, width=np.diff(bins),
+                align="edge", label="outside spot")
+    axes[1, 1].bar(bins[:-1], -inside, width=np.diff(bins),
+                align="edge", label="under spot")
+    axes[1, 1].legend()
+    axes[1, 1].set_title("(d)",loc="left")
+    axes[1, 1].set_xlabel("Speed")
+    axes[1, 1].set_ylabel("Frequency")
+    top_max = max(
+        max(homogeneous_1AB_counts),
+        max(homogeneous_10AB_counts)
+    )
+    axes[0, 0].set_ylim(0, top_max * 1.05)
+    axes[0, 1].set_ylim(0, top_max * 1.05)
+
+    # --- match y-limits for bottom row (symmetric because of +/- bars) ---    
+    inside_max = max(
+        max(heterogeneous_1AB_counts_inside),
+        max(heterogeneous_10AB_counts_inside),
+    )
+    outside_max = max(
+        max(heterogeneous_1AB_counts_outside),
+        max(heterogeneous_10AB_counts_outside)
+    )
+    abs_formatter = FuncFormatter(lambda y, _: f"{abs(y):.2f}")
+    axes[1, 0].yaxis.set_major_formatter(abs_formatter)
+    axes[1, 1].yaxis.set_major_formatter(abs_formatter)
+    axes[1, 0].set_ylim(-inside_max * 1.05, outside_max * 1.15)
+    axes[1, 1].set_ylim(-inside_max * 1.05, outside_max * 1.15)
+    plt.savefig("speed_pdfs.png", dpi=300, bbox_inches="tight")
+    plt.tight_layout()
     plt.show()
-
-    plt.title("Heterogeneous_1AB")
-    inside_counts, outside_counts, bins = heterogeneous_1AB_counts_inside, heterogeneous_1AB_counts_outside, heterogeneous_1AB_bins
-    plt.bar(bins[:-1], outside_counts, width=np.diff(bins), align="edge", label="outside")
-    plt.bar(bins[:-1], -inside_counts, width=np.diff(bins), align="edge", label="inside")
-    plt.legend()
-    plt.xlabel("Speed")
-    plt.ylabel("Frequency")
-    plt.show()
-
-    plt.title("Heterogeneous_10AB")
-    inside_counts, outside_counts, bins = heterogeneous_10AB_counts_inside, heterogeneous_10AB_counts_outside, heterogeneous_10AB_bins
-    plt.bar(bins[:-1], outside_counts, width=np.diff(bins), align="edge", label="outside")
-    plt.bar(bins[:-1], -inside_counts, width=np.diff(bins), align="edge", label="inside")
-    plt.legend()
-    plt.xlabel("Speed")
-    plt.ylabel("Frequency")
-    plt.show()
-
-
-

@@ -28,13 +28,13 @@ The study used as the starting point for this assignment was [Collignon et al. 2
 - Prepare presentation about our work
 
 ## Implementation
-The implementation of the stochastic vision-based model described in the the source paper can be found in `code/fish_sim`. The model has been extended to run in real-time with a running visualisation of the fish in the environment. 
+The implementation of the stochastic vision-based model described in the the source paper can be found in `code/simulation`. The model has been extended to run in real-time with a running visualisation of the fish in the environment. 
 
 The model supports bounded homogeneous and heterogeneous environments with spots of interest, where fish percieve their surroundings and gather information based on a 270° field of view and give each percieved stimuli a weight depending on how large they appear on in their field of view.
 
 A screenshot of the simulation running in a heterogeneous environment with 10 fish and 2 spots of interest can be seen on the following image.
 <div align="center">
-<img src="code/fish_sim/stochastic_sim.png" width="450"/>
+<img src="code/simulation/sim.png" width="450"/>
 </div>
 
 The model defines an orientation and speed probability density function (PDF) which fish sample at every time step. The speed PDF is built empirically from real life recordings of zebrafish. The orientation PDF is a composite of [von Mises](https://en.wikipedia.org/wiki/Von_Mises_distribution) distributions which define the probability of the fish choosing any direction.
@@ -47,7 +47,7 @@ The full orientation PDF $f$ is a composite of the following distributions:
 An example of an orientation PDF can be seen on the following image which contains plots of the PDF in cartesian (left) and polar (right) coordinates, where how different stimuli influence the probability of the fish changing its orientation.
 
 <div align="center">
-<img src="code/fish_sim/orientation_pdf.png" width="650"/>
+<img src="code/simulation/orientation_pdf.png" width="650"/>
 </div>
 
 The table below summarizes the parameter configurations tested across experiments and highlights which parameters yielded the best outcomes. The parameters alpha and beta weight the influence of social interactions (other fish) and environmental cues (spots of interest), respectively, in the composite orientation probability density function.
@@ -85,12 +85,12 @@ We ran 3 hour long simulations for 4 different environments, which we then compa
 
 The following image contains presence probabilities for a homogeneous environment with 1 fish (top two images) and 10 fish (bottom). The experimental data presence probability can be seen in orange and our simulated presence probability in blue.
 <div align="center">
-<img src="code/fish_sim/simulations/homo_presence_probability.png" width="550"/>
+<img src="code/simulation/simulations/homo_presence_probability.png" width="550"/>
 </div>
 
 The following image contains presence probabilities for a heterogeneous environment with 1 fish (top two images) and 10 fish (bottom). The heterogeneous environment contains two spots of interest marked with red circles. The experimental data presence probability can be seen in orange and our simulated presence probability in blue.
 <div align="center">
-<img src="code/fish_sim/simulations/hetero_presence_probability.png" width="550"/>
+<img src="code/simulation/simulations/hetero_presence_probability.png" width="550"/>
 </div>
 Our model gives very similar presence probabilities, though they deviate from the experimental data presence probabilities more than the model from the original paper which are almost perfect.
 This is likely due to numerical differences in the implementation and is expected to be corrected by tweaking dispersion parameters for the von Mises distributions.
