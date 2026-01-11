@@ -50,14 +50,25 @@ An example of an orientation PDF can be seen on the following image which contai
 <img src="code/simulation/orientation_pdf.png" width="650"/>
 </div>
 
-The table below summarizes the parameter configurations tested across experiments and highlights which parameters yielded the best outcomes. The parameters alpha and beta weight the influence of social interactions (other fish) and environmental cues (spots of interest), respectively, in the composite orientation probability density function.
+The table below summarizes the parameter configurations tested across experiments which yielded the best outcomes. The parameters alpha and beta weight the influence of social interactions (other fish) and environmental cues (spots of interest), respectively, in the composite orientation probability density function.
 
-| num fish | num spots | alpha_0 | alpha_w | beta_0 | beta_w |
-|----------|-----------|---------|---------|--------|--------|
-| 1        | 0         | /       | /       | /      | /      |
-| 10       | 0         | 7       | 2       | /      | /      |
-| 1        | 2         | /       | /       | 1      | 0.5     |
-| 10       | 2         | 9       | 2       | 1      | 0.5    |
+| Parameter     | Value | Description                                                                     |
+| ------------- | ----- | ------------------------------------------------------------------------------- |
+| $\kappa_0$    | 6.3   | Basic-swimming dispersion                                                       |
+| $\kappa_w$    | 20    | Wall-following dispersion                                                       |
+| $\kappa_f$    | 20    | Perceived fish dispersion                                                       |
+| $\kappa_s^0$  | 10    | Spot of interest dispersion (outside spot)                                      |
+| $\kappa_s^s$  | 0.5   | Spot of interest dispersion (under spot)                                        |
+| $\kappa_{WB}$ | 3     | Forward-facing amplification parameter                                          |
+| $\alpha_0$    | 7     | Weight of perceived fish during basic-swimming when only fish are present       |
+| $\alpha_w$    | 2     | Weight of perceived fish during wall-following when only fish are present       |
+| $\beta_0$     | 0.25  | Weight of perceived spots during basic-swimming when only spots are present     |
+| $\beta_w$     | 0.125 | Weight of perceived spots during wall-following when only spots are present     |
+| $\alpha_0^B$  | 9     | Weight of perceived fish during basic-swimming when fish and spots are present  |
+| $\alpha_w^B$  | 2     | Weight of perceived fish during wall-following when fish and spots are present  |
+| $\beta_0^B$   | 0.25  | Weight of perceived spots during basic-swimming when fish and spots are present |
+| $\beta_w^B$   | 0.125 | Weight of perceived spots during wall-following when fish and spots are present |
+
 
 ## Interactive simulation
 The interactive simulation is located in the `code/simulation` directory.
@@ -77,7 +88,7 @@ The interactive simulation supports the following features:
 - save drawn walls to `current_tank.png` by pressing the `I` key on the keyboard (to load the drawn tank rename the file to `tank.png`).
 
 ## Results
-We ran 3 hour long simulations for 4 different environments, which we then compared to real life recorded data of real fish (can be found in `source_paper/Zebrafish_Positions_data`):
+We ran 10 hour long simulations for 4 different environments, which we then compared to real life recorded data of real fish (can be found in `source_paper/Zebrafish_Positions_data`):
 - Homogeneous environment with 1 fish
 - Homogeneous environment with 10 fish
 - Heterogeneous environment with 1 fish and 2 spots
@@ -92,13 +103,22 @@ The following image contains presence probabilities for a heterogeneous environm
 <div align="center">
 <img src="code/simulation/simulations/hetero_presence_probability.png" width="550"/>
 </div>
-Our model gives very similar presence probabilities, though they deviate from the experimental data presence probabilities more than the model from the original paper which are almost perfect.
-This is likely due to numerical differences in the implementation and is expected to be corrected by tweaking dispersion parameters for the von Mises distributions.
 
-## Future work
-We have successfuly implemented the stochastic model and visualised it with a real-time simulation with drag-drop fish control capability. 
 
-Our next step will be to extend the model to allow for non-square environments and control over spots of interest, which will allow us to explore how zebrafish might behave in different environments further.
+To illustrate fish behaviour in an irregular environment, we ran the following 1-hour simulations:
+- Irregular environment with $1$ fish and $2$ spots,
+- Irregular environment with $10$ fish and $2$ spots,
+whose results can be seen in the image below:
+<div align="center">
+<img src="code/simulation/simulations/drawn_presence_probability.png" width="550"/>
+</div>
+
+## Co
+We successfully implemented the stochastic zebrafish behaviour model presented by Collignon et al. and reproduced presence probabilities for both homogeneous and heterogeneous environments, which closely match experimentally recorded data. We also developed an interactive simulation that allows control over fish and spots, and improved its performance by approximating the solid-angle calculations in the perception model using fitted functions.  
+The model was further extended to irregular environments, which can contain arbitrary wall configurations drawn directly within the interactive simulation. The resulting presence probability images, shown on Figure~\ref{drawn_presence}, clearly display fish navigating around the irregular wall structures.  
+
+Future work would focus on acquiring experimental zebrafish data in irregular environments to evaluate how well the model reproduces real fish behaviour in non square-walled environments.
+
 
 ## References
 <a id="collignon2016"></a>
