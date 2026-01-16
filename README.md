@@ -119,7 +119,7 @@ whose results can be seen in the image below:
 
 ## Conclusion
 We successfully implemented the stochastic zebrafish behaviour model presented by Collignon et al. and reproduced presence probabilities for both homogeneous and heterogeneous environments, which closely match experimentally recorded data. We also developed an interactive simulation that allows control over fish and spots, and improved its performance by approximating the solid-angle calculations in the perception model using fitted functions.  
-The model was further extended to irregular environments, which can contain arbitrary wall configurations drawn directly within the interactive simulation. The resulting presence probability images, shown on Figure~\ref{drawn_presence}, clearly display fish navigating around the irregular wall structures.  
+The model was further extended to irregular environments, which can contain arbitrary wall configurations drawn directly within the interactive simulation. The resulting presence probability images, clearly display fish navigating around the irregular wall structures.  
 
 Future work would focus on adding more stimuli to the environment, such as food and acquiring experimental zebrafish data in irregular environments to evaluate how well the model reproduces real fish behaviour in non square-walled environments.
 
@@ -129,6 +129,7 @@ Future work would focus on adding more stimuli to the environment, such as food 
 [1] <a href="https://royalsocietypublishing.org/doi/10.1098/rsos.150473">
 Collignon, et al. 2016. *A stochastic vision-based model inspired by zebrafish collective behaviour in heterogeneous environments.*
 </a>
+
 
 
 
