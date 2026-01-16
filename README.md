@@ -98,12 +98,12 @@ We ran 10 hour long simulations for 4 different environments, which we then comp
 - Heterogeneous environment with 1 fish and 2 spots
 - Heterogeneous environment with 10 fish and 2 spots
 
-The following image contains presence probabilities for a homogeneous environment with 1 fish (top two images) and 10 fish (bottom). The experimental data presence probability can be seen in orange and our simulated presence probability in blue.
+The following image contains presence probabilities for a homogeneous environment with 1 fish (top two images) and 10 fish (bottom). The experimental data presence probability can be seen in blue and our simulated presence probability in orange.
 <div align="center">
 <img src="code/simulation/simulations/homo_presence_probability.png" width="550"/>
 </div>
 
-The following image contains presence probabilities for a heterogeneous environment with 1 fish (top two images) and 10 fish (bottom). The heterogeneous environment contains two spots of interest marked with red circles. The experimental data presence probability can be seen in orange and our simulated presence probability in blue.
+The following image contains presence probabilities for a heterogeneous environment with 1 fish (top two images) and 10 fish (bottom). The heterogeneous environment contains two spots of interest marked with red circles. The experimental data presence probability can be seen in blue and our simulated presence probability in orange.
 <div align="center">
 <img src="code/simulation/simulations/hetero_presence_probability.png" width="550"/>
 </div>
@@ -129,4 +129,5 @@ Future work would focus on adding more stimuli to the environment, such as food 
 [1] <a href="https://royalsocietypublishing.org/doi/10.1098/rsos.150473">
 Collignon, et al. 2016. *A stochastic vision-based model inspired by zebrafish collective behaviour in heterogeneous environments.*
 </a>
+
 
