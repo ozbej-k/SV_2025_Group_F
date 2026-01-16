@@ -71,6 +71,10 @@ The table below summarizes the parameter configurations tested across experiment
 
 
 ## Interactive simulation
+<video autoplay loop muted playsinline>
+  <source src="report/video/2026-01-16 19-09-13.mp4" type="video/mp4">
+</video>
+
 The interactive simulation is located in the `code/simulation` directory.
 
 Running the `sim.py` script will start the simulation, which contains 10 fish and two spots of interest in the bottom left and top right corners.
