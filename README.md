@@ -71,9 +71,9 @@ The table below summarizes the parameter configurations tested across experiment
 
 
 ## Interactive simulation
-<video autoplay loop muted playsinline>
-  <source src="report/video/2026-01-16 19-09-13.mp4" type="video/mp4">
-</video>
+<div align="center">
+<img src="code/simulation/sim.gif" alt="GIF of simulation" width="550">
+</div>
 
 The interactive simulation is located in the `code/simulation` directory.
 
