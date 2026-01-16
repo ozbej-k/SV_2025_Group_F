@@ -17,7 +17,7 @@ def perceive(fish: Fish, fishies: List[Fish], spots: List[Spot], tank: Tank):
         "wall_state": {},
     }
 
-    # Fish perception
+    # fish perception
     ox, oy = fish.position
     o_theta = fish.orientation
 
@@ -25,7 +25,6 @@ def perceive(fish: Fish, fishies: List[Fish], spots: List[Spot], tank: Tank):
     sin_theta = np.sin(-o_theta)
 
     for other_fish in fishies:
-        
         if tank.ray_intersects_wall(fish.position, other_fish.position):
             continue
 
@@ -51,7 +50,7 @@ def perceive(fish: Fish, fishies: List[Fish], spots: List[Spot], tank: Tank):
             "A": min(solid_angle, 2*np.pi),
         })
 
-    # Spot perception
+    # spot perception
     eye_pos_world = np.array([fish.position[0], fish.position[1], 0.0], dtype=float)
     fish_orientation = fish.orientation
 
@@ -77,30 +76,12 @@ def perceive(fish: Fish, fishies: List[Fish], spots: List[Spot], tank: Tank):
             "A": A,
         })
 
-    # Wall perception
-    '''d_nearest, mu_w1_world, mu_w2_world = tank.tangent_wall_directions(fish.position)
-    if mu_w1_world is None or mu_w2_world is None:
-        mu_w1 = None
-        mu_w2 = None
-    else:
-        mu_w1 = (mu_w1_world - fish_orientation + np.pi) % (2 * np.pi) - np.pi
-        mu_w2 = (mu_w2_world - fish_orientation + np.pi) % (2 * np.pi) - np.pi
+    # wall perception
+    d_list, mu_w = tank.tangent_wall_directions(fish.position, fish.orientation)
+    mu_w_relative = [(mu - fish.orientation + np.pi) % (2 * np.pi) - np.pi for mu in mu_w]
 
     perception["wall_state"] = {
-        "mu_w1": mu_w1,
-        "mu_w2": mu_w2,
-        "distance": d_nearest,
-    }'''
-    d_list, mu_w1_list, mu_w2_list = tank.tangent_wall_directions(fish.position, fish.orientation)
-
-    # Convert wall tangents to fish-relative coordinates
-    mu_w1_relative = [(mu - fish.orientation + np.pi) % (2 * np.pi) - np.pi for mu in mu_w1_list]
-    mu_w2_relative = [(mu - fish.orientation + np.pi) % (2 * np.pi) - np.pi for mu in mu_w2_list]
-
-    # Store in perception
-    perception["wall_state"] = {
-        "mu_w1": mu_w1_relative,
-        "mu_w2": mu_w2_relative,
+        "mu_w": mu_w_relative,
         "distance": d_list,   
     }
     return perception

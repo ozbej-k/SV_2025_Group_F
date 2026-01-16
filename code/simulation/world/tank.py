@@ -21,34 +21,9 @@ class Tank:
             self.ymax = ymin + height
 
         # wall grid
-        self.wall_grid = np.zeros((int(height/config.GRID_CELL_SIZE), int(width/config.GRID_CELL_SIZE)), dtype=bool)
+        self.wall_grid = np.ones((int(self.height/config.GRID_CELL_SIZE), int(self.width/config.GRID_CELL_SIZE)), dtype=bool)
+        self.wall_grid[1:-1, 1:-1] = 0
         self.grid_height, self.grid_width = self.wall_grid.shape
-
-    '''    
-    def tangent_wall_directions(self, pos):
-        tank_m = np.array([[self.xmin, self.ymin], [self.xmax, self.ymax]])
-        diff = np.abs(np.array([pos - tank_m[0], tank_m[1] - pos]))
-        nearest = diff.min(0)
-        
-        d_nearest = diff.min()
-        if d_nearest >= config.PDF_DW:
-            return d_nearest, None, None
-
-        if np.abs(nearest[0] - nearest[1]) < config.PDF_DW:  # corner
-            ix, iy = np.argmin(diff[:,0]), np.argmin(diff[:,1])
-            # ix: 0 = left, 1 = right
-            # iy: 0 = bottom, 1 = top
-
-            horiz = 0 if ix == 0 else np.pi
-            vert  = 3*np.pi/2 if iy == 1 else np.pi/2
-
-            return d_nearest, vert, horiz
-
-        if nearest[0] < nearest[1]: # left right wall
-            return d_nearest, np.pi/2, 3*np.pi/2
-        else: # top / bottom wall
-            return d_nearest, 0, np.pi
-    '''
 
     def save_tank(self, path):
         img_uint8 = self.wall_grid.astype(np.uint8) * 255
@@ -57,23 +32,23 @@ class Tank:
     def load_tank(self, path):
         img = Image.open(path).convert("L")
         img_grid = np.array(img) > 0
+        
+        self.wall_grid = np.ones((int(self.height/config.GRID_CELL_SIZE), int(self.width/config.GRID_CELL_SIZE)), dtype=bool)
+        self.wall_grid[1:-1, 1:-1] = 0
+
         self.wall_grid[
             :min(self.wall_grid.shape[0], img_grid.shape[0]), 
             :min(self.wall_grid.shape[1], img_grid.shape[1])
-        ] = img_grid[
+        ] |= img_grid[
             :min(self.wall_grid.shape[0], img_grid.shape[0]),
             :min(self.wall_grid.shape[1], img_grid.shape[1])
         ]
 
-    def set_wall_grid(self, grid):
-        """Set the wall grid and its dimensions"""
-        self.wall_grid = grid
-        self.grid_height, self.grid_width = grid.shape
-    
     def is_wall_at(self, x, y):
         """Check if there's a wall at world coordinates (x, y)"""
         if self.wall_grid is None:
             return False
+        
         gx, gy = world_to_grid(self, x, y)
         if gx is None:
             return False
@@ -106,19 +81,10 @@ class Tank:
                     gx, gy = world_to_grid(self, ix, iy)
                     brush(gx, gy, brush_radius)
         else:
-            # First point
             gx, gy = world_to_grid(self, x, y)
             brush(gx, gy, brush_radius)
 
     def ray_intersects_wall(self, start_pos, end_pos, num_samples=20):
-        """
-        Check if a ray from start_pos to end_pos intersects any drawn wall.
-        Returns True if blocked, False otherwise.
-        """
-        if self.wall_grid is None:
-            return False
-        
-        # Sample points along the ray
         for i in range(num_samples + 1):
             t = i / num_samples
             x = start_pos[0] + t * (end_pos[0] - start_pos[0])
@@ -126,157 +92,17 @@ class Tank:
             if self.is_wall_at(x, y):
                 return True
         return False
-    
-    '''def tangent_wall_directions(self, pos):
-        """Find nearest wall (including drawn walls) and return tangent directions"""
-        #check drawn walls
-        if self.wall_grid is not None:
-            d_drawn, mu_w1_drawn, mu_w2_drawn = self._nearest_drawn_wall(pos)
-        else:
-            d_drawn = float('inf')
-            mu_w1_drawn = None
-            mu_w2_drawn = None
-        
-        # Check tank boundaries
-        tank_m = np.array([[self.xmin, self.ymin], [self.xmax, self.ymax]])
-        diff = np.abs(np.array([pos - tank_m[0], tank_m[1] - pos]))
-        nearest = diff.min(0)
-        
-        d_boundary = diff.min()
-        
-        # Use whichever is closer
-        if d_drawn < d_boundary:
-            return d_drawn, mu_w1_drawn, mu_w2_drawn
-        
-        # Original boundary logic
-        if d_boundary >= config.PDF_DW:
-            return d_boundary, None, None
-        if np.abs(nearest[0] - nearest[1]) < config.PDF_DW:  # corner
-            ix, iy = np.argmin(diff[:,0]), np.argmin(diff[:,1])
-            horiz = 0 if ix == 0 else np.pi
-            vert  = 3*np.pi/2 if iy == 1 else np.pi/2
-            return d_boundary, vert, horiz
-        if nearest[0] < nearest[1]:  # left right wall
-            return d_boundary, np.pi/2, 3*np.pi/2
-        else:  # top / bottom wall
-            return d_boundary, 0, np.pi
-    
-    def _nearest_drawn_wall(self, pos):
-        """Find the nearest drawn wall and compute tangent directions"""
-        search_radius_cells = int(config.PDF_DW / (self.width / self.grid_width)) + 5
-        
-        gx_center, gy_center = world_to_grid(self, pos[0], pos[1])
-        
-        min_dist = float('inf')
-        nearest_wall_pos = None
-        
-        # Search in a square around the fish
-        for dy in range(-search_radius_cells, search_radius_cells + 1):
-            for dx in range(-search_radius_cells, search_radius_cells + 1):
-                gx = gx_center + dx
-                gy = gy_center + dy
-                
-                if gx < 0 or gx >= self.grid_width or gy < 0 or gy >= self.grid_height:
-                    continue
-                
-                if self.wall_grid[gy, gx]:
-                    # Convert grid to world
-                    wx = self.xmin + (gx + 0.5) / self.grid_width * (self.xmax - self.xmin)
-                    wy = self.ymin + (gy + 0.5) / self.grid_height * (self.ymax - self.ymin)
-                    
-                    dist = np.sqrt((pos[0] - wx)**2 + (pos[1] - wy)**2)
-                    if dist < min_dist:
-                        min_dist = dist
-                        nearest_wall_pos = np.array([wx, wy])
-        
-        if nearest_wall_pos is None or min_dist >= config.PDF_DW:
-            return float('inf'), None, None
-        
-        # Estimate wall tangent by looking at neighboring wall cells
-        wall_tangent = self._estimate_wall_tangent(nearest_wall_pos)
-        
-        # Two tangent directions
-        mu_w1 = wall_tangent
-        mu_w2 = (wall_tangent + np.pi) % (2 * np.pi)
-        
-        return min_dist, mu_w1, mu_w2
-    
-    def _estimate_wall_tangent(self, wall_pos):
-        gx, gy = world_to_grid(self, wall_pos[0], wall_pos[1])
-
-        points = []
-        for dx in [-2, 0, 2]:
-            for dy in [-2, 0, 2]:
-                if dx == 0 and dy == 0:
-                    continue
-                nx, ny = gx + dx, gy + dy
-                if 0 <= nx < self.grid_width and 0 <= ny < self.grid_height:
-                    if self.wall_grid[ny, nx]:
-                        points.append([dx, dy])
-
-        if len(points) < 2:
-            return 0.0
-
-        pts = np.array(points, dtype=float)
-
-        # PCA
-        mean = pts.mean(axis=0)
-        pts -= mean
-        cov = pts.T @ pts
-        eigvals, eigvecs = np.linalg.eig(cov)
-
-        # direction of wall (tangent)
-        direction = eigvecs[:, np.argmax(eigvals)]
-        tangent = np.arctan2(direction[1], direction[0])
-
-        return tangent % (2 * np.pi)'''
 
     def tangent_wall_directions(self, pos, orientation):
-        """
-        Find all nearby walls (drawn walls + tank boundaries) and return their tangent directions.
-
-        Returns:
-            distances: list of distances to wall segments
-            mu_w1_list: list of first tangent angles for each wall segment
-            mu_w2_list: list of second tangent angles for each wall segment
-        """
-        distances = []
-        mu_w1_list = []
-        mu_w2_list = []
-
-        # 1 Drawn walls
+        distances, mu_w = [], []
         drawn_wall_segments = self._raycast_drawn_wall_tangents(pos, orientation)
         for s in drawn_wall_segments:
             if s["distance"] <= config.PDF_DW:
                 distances.append(s["distance"])
-                mu_w1_list.append(s["mu_w1"])
-                mu_w2_list.append(s["mu_w2"])
+                mu_w.append(s["mu_w1"])
+                mu_w.append(s["mu_w2"])
 
-        # 2 Tank boundaries
-        tank_m = np.array([[self.xmin, self.ymin], [self.xmax, self.ymax]])
-        diff = np.abs(np.array([pos - tank_m[0], tank_m[1] - pos]))
-        nearest = diff.min(0)
-        d_boundary = diff.min()
-
-        if d_boundary < config.PDF_DW:
-            # Determine tangent directions for boundaries
-            if np.abs(nearest[0] - nearest[1]) < config.PDF_DW:  # corner
-                ix, iy = np.argmin(diff[:,0]), np.argmin(diff[:,1])
-                horiz = 0 if ix == 0 else np.pi
-                vert  = 3*np.pi/2 if iy == 1 else np.pi/2
-                distances.append(d_boundary)
-                mu_w1_list.append(vert)
-                mu_w2_list.append(horiz)
-            elif nearest[0] < nearest[1]:  # left/right wall
-                distances.append(d_boundary)
-                mu_w1_list.append(np.pi/2)
-                mu_w2_list.append(3*np.pi/2)
-            else:  # top/bottom wall
-                distances.append(d_boundary)
-                mu_w1_list.append(0)
-                mu_w2_list.append(np.pi)
-
-        return distances, mu_w1_list, mu_w2_list
+        return distances, mu_w
 
     def is_wall_near(self, x, y, buffer=0.05):
         """
@@ -287,7 +113,7 @@ class Tank:
                 if self.is_wall_at(x + dx, y + dy):
                     return True
         return False
-    
+
     def _raycast_drawn_wall_tangents(self, pos, orientation, max_dist=(config.PDF_DW * 2)):
         """
         Cast rays around the fish to detect drawn-wall segments.
@@ -312,8 +138,6 @@ class Tank:
                     hit_dist = i * step
                     break
             hits.append(hit_dist)
-
-        
 
         # 2 Identify wall directions
         wall_segments = []

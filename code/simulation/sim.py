@@ -3,7 +3,6 @@ import pygame
 from world import Fish, Spot, Tank
 from perception.perception_model import perceive
 import config
-from pprint import pprint
 import pygame
 import pandas as pd
 import numpy as np
@@ -11,12 +10,13 @@ import matplotlib.pyplot as plt
 from orientation_PDF import total_f, THETA_GRID, sample_from_pdf
 from experimental_data.speed_PDF import SPEED_PDF_MAP
 from ui_utils import *
+import time
 
 def calculate_next_fish_state(tank: Tank, fish: Fish, perception, time_step):
     #d = perception["wall_state"]["distance"]  # distance from wall
     #mu_w = np.array([perception["wall_state"]["mu_w1"], perception["wall_state"]["mu_w2"]])  # wall tangents
     d = perception["wall_state"]["distance"]
-    mu_w_list = perception["wall_state"]["mu_w1"] + perception["wall_state"]["mu_w2"]
+    mu_w_list = perception["wall_state"]["mu_w"]
     mu_w = np.array([mu for mu in mu_w_list if mu is not None])
     A_f = np.array([fish["A"] for fish in perception["fish"]]) # sizes of percieved fishies
     mu_f = np.array([fish["mu"] for fish in perception["fish"]])  # directions of percieved fishies
@@ -97,6 +97,7 @@ def fish_loop(fishies, spots, tank, time_step, paused=False):
     return pdf_values
 
 def run_and_save_sim(tank, fishies, spots, duration_s, save_path=None):
+    start = time.time()
     positions = []
     for i in range(duration_s * config.FISH_FPS):
         if i % (60 * config.FISH_FPS) == 0:
@@ -105,7 +106,8 @@ def run_and_save_sim(tank, fishies, spots, duration_s, save_path=None):
         fish_loop(fishies, spots, tank, config.FISH_TIME_STEP)
         for fish in fishies:
             positions.append([float(i / config.FISH_FPS), fish.id, fish.position[0], fish.position[1]])
-
+    end = time.time()
+    print(f"{end-start:.2f} seconds")
     positions = pd.DataFrame(positions, columns=["time", "fish_id", "x", "y"])
     if save_path is None:
         for fish_id, group in positions.groupby("fish_id"):
@@ -117,12 +119,13 @@ def run_and_save_sim(tank, fishies, spots, duration_s, save_path=None):
 
 tank = Tank(config.TANK_WIDTH, config.TANK_HEIGHT, origin_at_center=True)
 
-num_fishies = 10
+num_fishies = 5
 fishies = [Fish(x, y, theta) for x, y, theta in zip(
     np.random.uniform(tank.xmin, tank.xmax, num_fishies),
     np.random.uniform(tank.ymin, tank.ymax, num_fishies),
     np.random.uniform(0, 2*np.pi, num_fishies)
 )]
+# fishies = [Fish(0.1,0.1,-np.pi)]
 
 spots = [
     Spot(0.35, 0.35, config.SPOT_RADIUS, config.SPOT_HEIGHT),
@@ -139,7 +142,7 @@ spots = [
 
 # ---- fast simulation ----
 
-# run_and_save_sim(tank, fishies, spots, 600, None)
+# run_and_save_sim(tank, fishies, spots, 120, "test")
 # run_and_save_sim(tank, fishies, spots, 60*60*10, "simulations/Homogeneous_1AB")
 # run_and_save_sim(tank, fishies, spots, 60*60*10, "simulations/Homogeneous_10AB")
 # run_and_save_sim(tank, fishies, spots, 60*60*10, "simulations/Heterogeneous_1AB")
