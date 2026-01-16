@@ -1,0 +1,7 @@
+In our project, we successfully implemented and improved upon the stochastic vision-based model of zebrafish behaviour proposed by Koh-lyon and colleagues. From this work, we draw three main conclusions.
+
+First, we verified the correctness of our model. We compared ten-hour-long simulations with equally long real zebrafish recordings. By analysing the probability of a fish being present at any given location in the tank, we showed that our model closely reproduces real zebrafish behaviour.
+
+Second, we extended the model to support irregular environments, as the original model was limited only to rectangular worlds.
+
+Finally, we made the simulation interactive and significantly more performnt by applying several optimisations, such as replacing expensive calculations with fast and accurate approximations.

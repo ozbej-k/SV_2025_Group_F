@@ -33,7 +33,8 @@ def recalculate_scale_and_positions(new_width, new_height, tank, add_fish_action
     UI.button_height = 0.1 * config.SCALE
 
     def clear_tank_action():
-        tank.wall_grid = np.zeros_like(tank.wall_grid, dtype=bool)
+        tank.wall_grid = np.ones((int(tank.height/config.GRID_CELL_SIZE), int(tank.width/config.GRID_CELL_SIZE)), dtype=bool)
+        tank.wall_grid[1:-1, 1:-1] = 0
 
     small_button_width = (UI.sidebar_rect.width * 0.40)
     sidebar_right = UI.sidebar_rect.x + UI.sidebar_rect.width
@@ -211,7 +212,7 @@ def draw_orientation_pdf(screen, selected_fish_orientation_pdf, THETA_GRID, sele
 
     pygame.draw.circle(screen, WHITE, middle, pdf_radius, max(1, int(0.007 * config.SCALE)))
 
-def world_to_grid(tank, x, y):
+def world_to_grid(tank, x, y): # copied in _raycast_drawn_wall_tangents
     # Map world coords to grid indices
     gx = int((x - tank.xmin) / (tank.xmax - tank.xmin) * tank.grid_width)
     gy = int((y - tank.ymin) / (tank.ymax - tank.ymin) * tank.grid_height)

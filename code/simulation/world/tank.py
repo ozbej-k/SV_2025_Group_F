@@ -44,8 +44,7 @@ class Tank:
             :min(self.wall_grid.shape[1], img_grid.shape[1])
         ]
 
-    def is_wall_at(self, x, y):
-        """Check if there's a wall at world coordinates (x, y)"""
+    def is_wall_at(self, x, y): # copied in _raycast_drawn_wall_tangents
         if self.wall_grid is None:
             return False
         
@@ -104,21 +103,14 @@ class Tank:
 
         return distances, mu_w
 
-    def is_wall_near(self, x, y, buffer=0.05):
-        """
-        Returns True if the fish would intersect the wall considering its size.
-        """
-        for dx in [-buffer, 0, buffer]:
-            for dy in [-buffer, 0, buffer]:
+    def is_wall_near(self, x, y, square_radius=0.05):
+        for dx in [-square_radius, 0, square_radius]:
+            for dy in [-square_radius, 0, square_radius]:
                 if self.is_wall_at(x + dx, y + dy):
                     return True
         return False
 
     def _raycast_drawn_wall_tangents(self, pos, orientation, max_dist=(config.PDF_DW * 2)):
-        """
-        Cast rays around the fish to detect drawn-wall segments.
-        Returns a list of dicts: {"mu_w1", "mu_w2", "distance"}.
-        """
         if self.wall_grid is None:
             return []
 
@@ -128,13 +120,21 @@ class Tank:
         hits = []
 
         # 1 Cast rays
-        for theta in angles:
+        num_steps = int(max_dist / step) + 1
+        cos_vals = np.cos(angles)
+        sin_vals = np.sin(angles)
+        xmin, xmax = self.xmin, self.xmax
+        ymin, ymax = self.ymin, self.ymax
+        gw, gh = self.grid_width, self.grid_height
+        wall_grid = self.wall_grid
+        for c, s in zip(cos_vals, sin_vals):
             hit_dist = None
-            num_steps = int(max_dist / step) + 1
             for i in range(num_steps):
-                px = pos[0] + i * step * np.cos(theta)
-                py = pos[1] + i * step * np.sin(theta)
-                if self.is_wall_at(px, py):
+                px = pos[0] + i * step * c
+                py = pos[1] + i * step * s
+                gx = int((px - xmin) / (xmax - xmin) * gw) # copied from is_wall_at and world_to_grid
+                gy = int((py - ymin) / (ymax - ymin) * gh) # copied from is_wall_at and world_to_grid
+                if 0 <= gx < gw and 0 <= gy < gh and wall_grid[gy, gx]:
                     hit_dist = i * step
                     break
             hits.append(hit_dist)

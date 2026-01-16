@@ -13,8 +13,6 @@ from ui_utils import *
 import time
 
 def calculate_next_fish_state(tank: Tank, fish: Fish, perception, time_step):
-    #d = perception["wall_state"]["distance"]  # distance from wall
-    #mu_w = np.array([perception["wall_state"]["mu_w1"], perception["wall_state"]["mu_w2"]])  # wall tangents
     d = perception["wall_state"]["distance"]
     mu_w_list = perception["wall_state"]["mu_w"]
     mu_w = np.array([mu for mu in mu_w_list if mu is not None])
@@ -23,15 +21,12 @@ def calculate_next_fish_state(tank: Tank, fish: Fish, perception, time_step):
     A_s = np.array([fish["A"] for fish in perception["spots"]])  # sizes of percieved spots
     mu_s = np.array([fish["mu"] for fish in perception["spots"]])  # directions of percieved spots
 
-    #near_wall = d < config.PDF_DW
     near_wall = d < config.PDF_DW if isinstance(d, float) else (len(d) > 0 and min(d) < config.PDF_DW)
     under_spot = perception["under_spot"]
     pdf_values = total_f(THETA_GRID, near_wall, under_spot, mu_w, A_f, A_s, mu_f, mu_s)
     sees_spots = A_s.size != 0
     sees_fish = A_f.size != 0
     speed_bins, speed_pdf = SPEED_PDF_MAP[(sees_fish, sees_spots, under_spot)]
-    # print("sees_fish", sees_fish, "sees_spots", sees_spots, "under_spot", under_spot)
-    # speed_bins, speed_pdf = SPEED_PDF_MAP[(False, False, False)] # swimming alone 
 
     # new orientation and speed
     new_orientation = fish.orientation + sample_from_pdf(THETA_GRID, pdf_values)
@@ -44,18 +39,18 @@ def calculate_next_fish_state(tank: Tank, fish: Fish, perception, time_step):
     # wall handling
     v = intended_position - fish.position
     if not tank.ray_intersects_wall(fish.position, intended_position) \
-        and not tank.is_wall_near(*intended_position, buffer=config.FISH_LENGTH/2):
+        and not tank.is_wall_near(*intended_position, square_radius=config.FISH_LENGTH/2):
         new_speed_vec = v
     else:
         # Try sliding along X
         x_slide = np.array([fish.position[0] + v[0], fish.position[1]])
-        if not tank.is_wall_near(*x_slide, buffer=config.FISH_LENGTH/2):
+        if not tank.is_wall_near(*x_slide, square_radius=config.FISH_LENGTH/2):
             intended_position = x_slide
             new_speed_vec = x_slide - fish.position
         else:
             # Try sliding along Y
             y_slide = np.array([fish.position[0], fish.position[1] + v[1]])
-            if not tank.is_wall_near(*y_slide, buffer=config.FISH_LENGTH/2):
+            if not tank.is_wall_near(*y_slide, square_radius=config.FISH_LENGTH/2):
                 intended_position = y_slide
                 new_speed_vec = y_slide - fish.position
             else:
@@ -119,7 +114,7 @@ def run_and_save_sim(tank, fishies, spots, duration_s, save_path=None):
 
 tank = Tank(config.TANK_WIDTH, config.TANK_HEIGHT, origin_at_center=True)
 
-num_fishies = 5
+num_fishies = 10
 fishies = [Fish(x, y, theta) for x, y, theta in zip(
     np.random.uniform(tank.xmin, tank.xmax, num_fishies),
     np.random.uniform(tank.ymin, tank.ymax, num_fishies),
