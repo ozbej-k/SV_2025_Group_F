@@ -28,7 +28,7 @@ The study used as the starting point for this assignment was [Collignon et al. 2
 - Prepare presentation about our work
 
 ## Implementation
-The implementation of the stochastic vision-based model described in the the source paper can be found in `code/simulation`. The model has been extended to run in real-time with a running visualisation of the fish in the environment. 
+The implementation of the stochastic vision-based model described in the the source paper can be found in `code/simulation` and ran with script `code/simulation/sim.py`. The model has been extended to run in real-time with a running visualisation of the fish in the environment. 
 
 The model supports bounded homogeneous and heterogeneous environments with spots of interest, where fish percieve their surroundings and gather information based on a 270° field of view and give each perceived stimuli a weight depending on how large they appear on in their field of view.
 
@@ -129,6 +129,7 @@ Future work would focus on adding more stimuli to the environment, such as food 
 [1] <a href="https://royalsocietypublishing.org/doi/10.1098/rsos.150473">
 Collignon, et al. 2016. *A stochastic vision-based model inspired by zebrafish collective behaviour in heterogeneous environments.*
 </a>
+
 
 
 
